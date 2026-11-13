@@ -10,7 +10,6 @@ const {
 const protectiondb = require('./featureDb')('protection');
 
 const deleteBuckets = new Map(); // `${guildId}:${botId}:channels` -> timestamps
-const snapshotTimers = new Map();
 
 function hasProtectionCommands(client) {
   try {
@@ -572,23 +571,25 @@ function attachRecoveryPoll(client) {
   const run = () => {
     void syncSnapshotsForClient(client);
     if (!botId) return;
-    if (snapshotTimers.has(botId)) clearInterval(snapshotTimers.get(botId));
-    const timer = setInterval(() => {
-      void syncSnapshotsForClient(client);
-    }, 5 * 60 * 1000);
-    if (typeof timer.unref === 'function') timer.unref();
-    snapshotTimers.set(botId, timer);
+    const { getScheduler } = require('../../src/shared/runtime/scheduler');
+    const scheduler = getScheduler();
+    const scope = `bot:${botId}`;
+    scheduler.stop('recovery-snapshot', scope);
+    scheduler.every(
+      5 * 60 * 1000,
+      () => {
+        void syncSnapshotsForClient(client);
+      },
+      { name: 'recovery-snapshot', scope },
+    );
   };
   if (client.isReady?.()) run();
   else client.once('ready', run);
 }
 
 function stopRecoveryPoll(botId) {
-  const t = snapshotTimers.get(String(botId));
-  if (t) {
-    clearInterval(t);
-    snapshotTimers.delete(String(botId));
-  }
+  const { getScheduler } = require('../../src/shared/runtime/scheduler');
+  getScheduler().stop('recovery-snapshot', `bot:${String(botId)}`);
 }
 
 module.exports = {

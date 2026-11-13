@@ -123,14 +123,18 @@ function applyKvMessage(raw) {
 
 function startLiveSyncFallback() {
   if (livePollTimer) return;
-  livePollTimer = setInterval(() => {
-    void hydrateNamespaces(LIVE_NAMESPACES).catch((err) => {
-      console.warn(
-        `[platformCache] live poll failed: ${err?.message || err}`,
-      );
-    });
-  }, 4000);
-  if (typeof livePollTimer.unref === 'function') livePollTimer.unref();
+  const { getScheduler } = require('../runtime/scheduler');
+  livePollTimer = getScheduler().every(
+    4000,
+    () => {
+      void hydrateNamespaces(LIVE_NAMESPACES).catch((err) => {
+        console.warn(
+          `[platformCache] live poll failed: ${err?.message || err}`,
+        );
+      });
+    },
+    { name: 'platform-cache-live-poll', scope: 'process' },
+  );
   console.log(
     `[platformCache] live poll every 4s for ${LIVE_NAMESPACES.join(', ')}`,
   );

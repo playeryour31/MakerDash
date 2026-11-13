@@ -29,6 +29,7 @@ const {
     ChatInputCommandInteraction
 } = require("discord.js");
 const isImageUrl = require('is-image-url');
+const { reportBroadcastProgress } = require("../../lib/broadcastProgress");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -92,21 +93,19 @@ module.exports = {
                 }
             });
 
-            const updateInterval = setInterval(() => {
-                statusEmbed.setDescription(`Total members in the server: **${totalMembers}**\n` +
+            reportBroadcastProgress({
+                interaction,
+                statusEmbed,
+                logEmbed,
+                isDone: () => successfulCount + failedCount >= totalExpected,
+                describe: () => `Total members in the server: **${totalMembers}**\n` +
                     `Total bots in the server: **${totalBots}**\n` +
                     `Expected members to receive message: **${totalExpected}**\n` +
                     `Successfully sent the message to **${successfulCount}** members.\n` +
-                    `Failed to send to **${failedCount}** members:\n\`\`\`${failedMembers.length > 0 ? failedMembers.join('\n') : 'None'}\`\`\``);
-
-                interaction.editReply({ embeds: [statusEmbed, logEmbed] });
-
-                if (successfulCount + failedCount >= totalExpected) {
-                    clearInterval(updateInterval);
-                    logEmbed.setDescription(logEmbed.description + `\n✅ **Broadcast completed successfully**\n`);
-                    interaction.editReply({ embeds: [statusEmbed, logEmbed] });
-                }
-            }, 3000);
+                    `Failed to send to **${failedCount}** members:\n\`\`\`${failedMembers.length > 0 ? failedMembers.join('\n') : 'None'}\`\`\``,
+                doneNote: '✅ **Broadcast completed successfully**',
+                intervalMs: 3000,
+            });
 
         } catch (error) {
             console.log(error)

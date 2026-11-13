@@ -41,6 +41,7 @@ packages/
 Main/           Control Discord bot handlers (legacy JS)
 Maker/          Customer multi-bot runtime (legacy JS)
 src/shared/     Bridges between legacy JS and Postgres/Redis
+src/shared/runtime/  The process-wide scheduler (single timer)  @shared/runtime
 src/maker/      Bootstrap, client factory, keep-alive
 Database/       Legacy JSON archive (see "Known debt")
 Maker/Json-Database/  Legacy JSON archive (see "Known debt")
@@ -87,6 +88,39 @@ one typed file holding the only `require()` into the CommonJS tree. No other API
 file may require legacy code, so porting a module later is a one-line change.
 
 **Phase 2 merges these two bridges into `packages/data-bridge`.**
+
+## One timer for every loop
+
+`src/shared/runtime/scheduler.js` owns scheduling for the whole bot process.
+The old code armed 33 independent timers (18 inside `Maker/Events/ready.js`
+alone, once per customer bot), and `client.destroy()` never cleared them: a
+stopped or expired bot kept its loops running against a dead client.
+
+The scheduler keeps a **single armed `setTimeout`**, a job table keyed by
+`scope::name`, and these rules:
+
+- **One timer.** `stats().timers` is 1 while anything is queued, 0 when idle.
+- **No overlap.** A tick is skipped (and counted) while the previous run of the
+  same job is still pending, so a slow Discord call cannot double-post a panel.
+- **Cadence preserved.** `dueAt` advances by the full interval, not to "now",
+  so a 7s giveaway poll stays a 7s poll instead of drifting to 7s + latency.
+- **Scope cleanup.** `bindClient(client)` wraps `client.destroy()` so the bot's
+  whole scope is cancelled; `stopScope('bot:<id>')` is the manual form.
+
+Naming convention: `scope = 'bot:<clientId>'` for anything a customer bot owns,
+`'process'` for singletons (health supervisor, blacklist expiry, cache poll),
+`'interaction:<id>'` for bounded work such as broadcast progress reports.
+`Maker/lib/broadcastProgress.js` is the shared implementation of the latter: it
+arms the reporter and a 15-minute watchdog together and removes both when the
+count finishes, so a stalled broadcast cannot edit a reply forever.
+
+Any new repeating timer in `Main/`, `Maker/`, `src/shared/` or the bot process
+must go through `getScheduler()` instead of the global timer functions. Bounded
+one-shots (debounces, "re-assert after 2s") may stay as `setTimeout`; the rule is
+about loops that can outlive their client. The only remaining raw `setInterval`
+in the whole repo is the API's rate-limit bucket sweeper
+(`Apps/api/src/common/rate-limit.middleware.ts`), which runs in a separate
+process that never loads the bot scheduler.
 
 ## Runtime flags
 
@@ -162,13 +196,13 @@ Produced by `npm run metrics`:
 |--------|-------|--------|
 | `new Database()` call sites | 300 | 0 outside the bridge |
 | Distinct legacy paths | 54 | routed via one table |
-| `setInterval` calls | 33 | ≤ 8 |
+| Raw `setInterval` calls | 1 (Redis-free cache poll) | 0 outside the scheduler |
 | `console.*` calls | 641 | one structured logger |
 | `createRequire()` in API | 0 | 0 |
 | `requireFromHere()` in API | 0 | 0 |
 | Direct `fs` use in API | 30 | 0 |
 | Legacy JSON on disk | 10.0 MB | 0 |
-| Largest file | `Maker/Events/ready.js` 1,362 lines | < 400 |
+| Largest file | `Maker/Events/ready.js` 1,370 lines | < 400 |
 
 Subscription policy has exactly one implementation: `@maker/subscriptions`.
 `src/shared/services/subscriptionLifecycle.js` is now a thin side-effect wrapper

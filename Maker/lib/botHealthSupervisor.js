@@ -413,17 +413,29 @@ async function runHealthTick() {
   }
 }
 
+const { getScheduler } = require('../../src/shared/runtime/scheduler');
+
 function startBotHealthSupervisor(opts = {}) {
   forceReconnectFn = opts.forceCustomerReconnect || null;
   console.log(
     `[bot-health] supervisor started (every ${Math.round(HEALTH_INTERVAL_MS / 1000)}s)`,
   );
-  setTimeout(() => {
-    void runHealthTick();
-  }, 15_000);
-  setInterval(() => {
-    void runHealthTick();
-  }, HEALTH_INTERVAL_MS);
+  const scheduler = getScheduler();
+  scheduler.every(
+    HEALTH_INTERVAL_MS,
+    () => {
+      void runHealthTick();
+    },
+    { name: 'bot-health', scope: 'process' },
+  );
+  // First tick after a short warm-up instead of immediately, so login can settle.
+  scheduler.after(
+    15_000,
+    () => {
+      void runHealthTick();
+    },
+    { name: 'bot-health-warmup', scope: 'process' },
+  );
   return { runHealthTick };
 }
 

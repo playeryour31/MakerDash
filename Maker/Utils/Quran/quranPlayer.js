@@ -12,6 +12,7 @@ const fs = require('fs');
 const { ChannelType, PermissionsBitField } = require('discord.js');
 const quranFile = require('./quranFileStore');
 const { createRadioSource, getFfmpegPath } = require('./audioSource');
+const { getScheduler } = require('../../../src/shared/runtime/scheduler');
 
 // Discord now requires DAVE for voice — must load before joining
 try {
@@ -847,9 +848,13 @@ function createQuranPlayer(client) {
       /* watchFile fallback is enough */
     }
     // Hard poll so control stays snappy even if FS events are missed on Windows
-    setInterval(() => {
-      safeRun(processQueue(), 'queue-poll');
-    }, 400);
+    getScheduler().every(
+      400,
+      () => {
+        safeRun(processQueue(), 'queue-poll');
+      },
+      { name: 'quran-queue-poll', scope: `bot:${botId}` },
+    );
   }
 
   async function watchdog() {

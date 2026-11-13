@@ -28,6 +28,7 @@ const {
     EmbedBuilder,
     ChatInputCommandInteraction
 } = require("discord.js");
+const { reportBroadcastProgress } = require("../../lib/broadcastProgress");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -88,19 +89,17 @@ module.exports = {
                     });
             });
 
-            const updateInterval = setInterval(() => {
-                statusEmbed.setDescription(`Total members with role **${targetRole.name}**: **${totalRoleMembers}**\n` +
+            reportBroadcastProgress({
+                interaction,
+                statusEmbed,
+                logEmbed,
+                isDone: () => successfulCount + failedCount >= totalRoleMembers,
+                describe: () => `Total members with role **${targetRole.name}**: **${totalRoleMembers}**\n` +
                     `Successfully sent the message to **${successfulCount}** members.\n` +
-                    `Failed to send to **${failedCount}** members:\n\`\`\`${failedMembers.length > 0 ? failedMembers.join('\n') : 'None'}\`\`\``);
-
-                interaction.editReply({ embeds: [statusEmbed, logEmbed] });
-
-                if (successfulCount + failedCount >= totalRoleMembers) {
-                    clearInterval(updateInterval);
-                    logEmbed.setDescription(logEmbed.description + `\n✅ **Broadcast to members with role ${targetRole.name} completed successfully**\n`);
-                    interaction.editReply({ embeds: [statusEmbed, logEmbed] });
-                }
-            }, 1500);
+                    `Failed to send to **${failedCount}** members:\n\`\`\`${failedMembers.length > 0 ? failedMembers.join('\n') : 'None'}\`\`\``,
+                doneNote: `✅ **Broadcast to members with role ${targetRole.name} completed successfully**`,
+                intervalMs: 1500,
+            });
         } catch (error) {
             console.log(error);
             return interaction.reply({ embeds: [replyEmbeds.errorEmbed], ephemeral: true, allowedMentions: { repliedUser: false } });

@@ -15,7 +15,6 @@ const RULE_PREFIX = '[Maker Protection]';
 const SYNC_INTERVAL_MS = 3 * 60 * 1000;
 
 const lastHashByGuild = new Map(); // `${guildId}:${botId}` -> hash
-const timers = new Map();
 
 function getConfig(guildId, botId) {
   const raw = protectiondb.get(`protectionConfig_${guildId}_${botId}`) || null;
@@ -274,20 +273,22 @@ async function syncClientGuilds(client) {
 function startAutomodPoll(client) {
   if (!client?.user?.id) return;
   const botId = client.user.id;
-  stopAutomodPoll(botId);
-  const timer = setInterval(() => {
-    void syncClientGuilds(client);
-  }, SYNC_INTERVAL_MS);
-  if (typeof timer.unref === 'function') timer.unref();
-  timers.set(botId, timer);
+  const { getScheduler } = require('../../src/shared/runtime/scheduler');
+  const scheduler = getScheduler();
+  const scope = `bot:${botId}`;
+  scheduler.stop('automod-sync', scope);
+  scheduler.every(
+    SYNC_INTERVAL_MS,
+    () => {
+      void syncClientGuilds(client);
+    },
+    { name: 'automod-sync', scope },
+  );
 }
 
 function stopAutomodPoll(botId) {
-  const t = timers.get(String(botId));
-  if (t) {
-    clearInterval(t);
-    timers.delete(String(botId));
-  }
+  const { getScheduler } = require('../../src/shared/runtime/scheduler');
+  getScheduler().stop('automod-sync', `bot:${String(botId)}`);
 }
 
 function attachAutomodSync(client) {

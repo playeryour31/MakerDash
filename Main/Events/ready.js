@@ -22,6 +22,7 @@ const Makers = new Database("./Database/Others/BotMakerTokens.json");
 const { createLogger } = require('../../src/shared/utils/logger');
 const log = createLogger('Main');
 const { syncBotsToApiBackground } = require('../../src/shared/services/tokensWriteBridge');
+const { getScheduler, bindClient } = require('../../src/shared/runtime/scheduler');
 
 /**
  * 
@@ -41,8 +42,12 @@ module.exports.run = async (client) => {
     try {
         log.success(`${client.user.username} online`, `(${client.user.id})`);
 
+        const scheduler = getScheduler();
+        const scope = bindClient(client) || `bot:${client.user.id}`;
+        const every = (name, ms, fn) => scheduler.every(ms, fn, { name, scope });
 
-setInterval(async () => {
+
+every("subscription-check", 30_000, async () => {
     const Log = client.channels.cache.get(config.LogChannels.ExpireChannels);
     const WarnLog = Log;
     const TokenDB = new Database('/Database/Others/UnusedTokens.json');
@@ -207,7 +212,7 @@ setInterval(async () => {
     } catch (error) {
       console.error('An error occurred in the subscription checker:', error);
     }
-}, 30_000);
+});
 
 
         const backupDetails = [
@@ -221,7 +226,7 @@ setInterval(async () => {
         }
 
         const backupChannelID = config.LogChannels.BackupChannel;
-        setInterval(() => {
+        every("database-backup", 1200000, () => {
                     const startTime = Date.now();
 
             try {
@@ -329,9 +334,9 @@ setInterval(async () => {
             } catch (error) {
                 console.log("Unexpected error during backup:", error);
             }
-       }, 1200000);
+       });
 
-        setInterval(async () => {
+        every("coins-snapshot", 20000, async () => {
             try {
                 const { findGuildBalances } = require("../../src/shared/services/balanceService");
                 const allUsers = await findGuildBalances(config.Configure.DBGuild);
@@ -354,7 +359,7 @@ setInterval(async () => {
             } catch (error) {
                 console.log("Unexpected error while updating coins:", error);
             }
-        }, 20000);
+        });
     } catch (error) {
         console.log(error);
     }

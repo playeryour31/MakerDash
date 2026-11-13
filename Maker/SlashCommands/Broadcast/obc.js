@@ -28,6 +28,7 @@ const {
     EmbedBuilder,
     ChatInputCommandInteraction
 } = require("discord.js");
+const { reportBroadcastProgress } = require("../../lib/broadcastProgress");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -83,19 +84,17 @@ module.exports = {
                     });
             });
 
-            const updateInterval = setInterval(() => {
-                statusEmbed.setDescription(`Total online members: **${totalOnline}**\n` +
+            reportBroadcastProgress({
+                interaction,
+                statusEmbed,
+                logEmbed,
+                isDone: () => successfulCount + failedCount >= totalOnline,
+                describe: () => `Total online members: **${totalOnline}**\n` +
                     `Successfully sent the message to **${successfulCount}** members.\n` +
-                    `Failed to send to **${failedCount}** members:\n\`\`\`${failedMembers.length > 0 ? failedMembers.join('\n') : 'None'}\`\`\``);
-
-                interaction.editReply({ embeds: [statusEmbed, logEmbed] });
-
-                if (successfulCount + failedCount >= totalOnline) {
-                    clearInterval(updateInterval);
-                    logEmbed.setDescription(logEmbed.description + `\n✅ **Broadcast to online members completed successfully**\n`);
-                    interaction.editReply({ embeds: [statusEmbed, logEmbed] });
-                }
-            }, 1500);
+                    `Failed to send to **${failedCount}** members:\n\`\`\`${failedMembers.length > 0 ? failedMembers.join('\n') : 'None'}\`\`\``,
+                doneNote: '✅ **Broadcast to online members completed successfully**',
+                intervalMs: 1500,
+            });
         } catch (error) {
             console.log(error);
             return interaction.reply({ embeds: [replyEmbeds.errorEmbed], ephemeral: true, allowedMentions: { repliedUser: false } });

@@ -148,7 +148,6 @@ async function applyPunishment(member, punishment, opts = {}) {
 }
 
 const lockdownMuteApplied = new Map(); // `${guildId}:${botId}` -> boolean
-const lockdownPollTimers = new Map();
 
 function lockdownKey(guildId, botId) {
   return `${guildId}:${botId}`;
@@ -294,13 +293,17 @@ function attachLockdownPoll(client) {
   const run = () => {
     void syncLockdownForClient(client);
     if (!botId) return;
-    const existing = lockdownPollTimers.get(botId);
-    if (existing) clearInterval(existing);
-    const timer = setInterval(() => {
-      void syncLockdownForClient(client);
-    }, 45 * 1000);
-    if (typeof timer.unref === 'function') timer.unref();
-    lockdownPollTimers.set(botId, timer);
+    const { getScheduler } = require('../../src/shared/runtime/scheduler');
+    const scheduler = getScheduler();
+    const scope = `bot:${botId}`;
+    scheduler.stop('lockdown-sync', scope);
+    scheduler.every(
+      45 * 1000,
+      () => {
+        void syncLockdownForClient(client);
+      },
+      { name: 'lockdown-sync', scope },
+    );
   };
 
   if (client.isReady?.()) run();
@@ -308,11 +311,8 @@ function attachLockdownPoll(client) {
 }
 
 function stopLockdownPoll(botId) {
-  const t = lockdownPollTimers.get(String(botId));
-  if (t) {
-    clearInterval(t);
-    lockdownPollTimers.delete(String(botId));
-  }
+  const { getScheduler } = require('../../src/shared/runtime/scheduler');
+  getScheduler().stop('lockdown-sync', `bot:${String(botId)}`);
 }
 
 function pushTimed(map, key, now, windowMs) {

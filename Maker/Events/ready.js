@@ -25,6 +25,10 @@ let ticketdb = require("../lib/featureDb")("ticket");
 let ticketdb2 = require("../lib/featureDb")("temp_ticket");
 const statusDB = new Database("/Database/BotMaker/Status.json");
 const VoicesDB = new Database("./Database/Others/Voices.json");
+const {
+  getScheduler,
+  bindClient,
+} = require("../../src/shared/runtime/scheduler");
 
 const ACTIVITY_TYPE_MAP = {
   PLAYING: ActivityType.Playing,
@@ -118,6 +122,13 @@ function applyBotPresence(client, name, typeKey, url, status) {
 module.exports.run = async (client) => {
   try {
     const chalk = require("chalk");
+    const scheduler = getScheduler();
+    const scope = bindClient(client) || `bot:${client.user.id}`;
+    // Every timer this bot owns is registered by name under its own scope, so
+    // client.destroy() (wrapped in bindClient) cancels them all.
+    const every = (name, ms, fn) => scheduler.every(ms, fn, { name, scope });
+    const after = (name, ms, fn) =>
+      scheduler.after(ms, fn, name ? { name, scope } : { scope });
     console.log(
       `${chalk.bgHex("#0d9488").white.bold(" bot ")} ${chalk.green("✓")} ${client.user.username} online`,
     );
@@ -135,47 +146,51 @@ module.exports.run = async (client) => {
       console.warn(`[guild-lock] ready enforce: ${err?.message || err}`);
     }
 
-    setInterval(() => {
-      const afk = VoicesDB.get(client.user.id) || null;
-      if (afk && afk.VoiceChannel) {
-        // Don't fight Quran player for the same guild voice connection
-        try {
-          const { isQuranHoldingVoice } = require("../Utils/Quran/quranPlayer");
-          const quran = require("../lib/featureDb")("quran").get(
-            `Quran_${client.user.id}`,
-          );
-          if (
-            (quran?.enabled && quran?.voiceChannelId) ||
-            isQuranHoldingVoice(client.user.id)
-          ) {
-            return;
-          }
-        } catch {
+    every(
+      "afk-voice",
+      5000,
+      () => {
+        const afk = VoicesDB.get(client.user.id) || null;
+        if (afk && afk.VoiceChannel) {
+          // Don't fight Quran player for the same guild voice connection
           try {
+            const { isQuranHoldingVoice } = require("../Utils/Quran/quranPlayer");
             const quran = require("../lib/featureDb")("quran").get(
               `Quran_${client.user.id}`,
             );
-            if (quran?.enabled && quran?.voiceChannelId) return;
+            if (
+              (quran?.enabled && quran?.voiceChannelId) ||
+              isQuranHoldingVoice(client.user.id)
+            ) {
+              return;
+            }
           } catch {
-            /* ignore */
+            try {
+              const quran = require("../lib/featureDb")("quran").get(
+                `Quran_${client.user.id}`,
+              );
+              if (quran?.enabled && quran?.voiceChannelId) return;
+            } catch {
+              /* ignore */
+            }
           }
-        }
-        const voiceChannel = client.channels.cache.get(afk.VoiceChannel);
-        if (voiceChannel && voiceChannel.type === ChannelType.GuildVoice) {
-          try {
-            joinVoiceChannel({
-              channelId: voiceChannel.id,
-              guildId: voiceChannel.guild.id,
-              adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-            });
-          } catch (error) {
+          const voiceChannel = client.channels.cache.get(afk.VoiceChannel);
+          if (voiceChannel && voiceChannel.type === ChannelType.GuildVoice) {
+            try {
+              joinVoiceChannel({
+                channelId: voiceChannel.id,
+                guildId: voiceChannel.guild.id,
+                adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+              });
+            } catch (error) {
+              return;
+            }
+          } else {
             return;
           }
-        } else {
-          return;
         }
-      }
-    }, 5000);
+      },
+    );
     const seatioesd = statusDB.get(client.user.id);
     console.log(
       `[presence] saved status for ${client.user.id}:`,
@@ -192,7 +207,7 @@ module.exports.run = async (client) => {
           seatioesd.Url,
           seatioesd.Status,
         );
-        setTimeout(() => {
+        after("presence-reassert-1", 1500, () => {
           applyBotPresence(
             client,
             seatioesd.Name,
@@ -200,8 +215,8 @@ module.exports.run = async (client) => {
             seatioesd.Url,
             seatioesd.Status,
           );
-        }, 1500);
-        setTimeout(() => {
+        });
+        after("presence-reassert-2", 5000, () => {
           applyBotPresence(
             client,
             seatioesd.Name,
@@ -209,66 +224,65 @@ module.exports.run = async (client) => {
             seatioesd.Url,
             seatioesd.Status,
           );
-        }, 5000);
+        });
       }
     }
 
     // Keep Streaming sticky — Discord sometimes drops type 1 back to Playing
-    setInterval(() => {
-      try {
-        const saved = statusDB.get(client.user.id);
-        if (!saved?.Name || !saved?.Type) return;
-        if (String(saved.Type).toUpperCase() !== "STREAMING") return;
-        const current = client.user?.presence?.activities?.[0];
-        const isStreamingNow =
-          current &&
-          (current.type === ActivityType.Streaming || current.type === 1) &&
-          current.url;
-        if (!isStreamingNow) {
-          applyBotPresence(
-            client,
-            saved.Name,
-            "STREAMING",
-            saved.Url,
-            "online",
-          );
+    every("streaming-keepalive", 15000, () => {
+        try {
+          const saved = statusDB.get(client.user.id);
+          if (!saved?.Name || !saved?.Type) return;
+          if (String(saved.Type).toUpperCase() !== "STREAMING") return;
+          const current = client.user?.presence?.activities?.[0];
+          const isStreamingNow =
+            current &&
+            (current.type === ActivityType.Streaming || current.type === 1) &&
+            current.url;
+          if (!isStreamingNow) {
+            applyBotPresence(
+              client,
+              saved.Name,
+              "STREAMING",
+              saved.Url,
+              "online",
+            );
+          }
+        } catch (err) {
+          console.log("Streaming keep-alive error:", err?.message || err);
         }
-      } catch (err) {
-        console.log("Streaming keep-alive error:", err?.message || err);
-      }
-    }, 15000);
+      });
 
-    setInterval(() => {
-      try {
-        const status = db222.get(`Expired_${client.user.id}`) || null;
-        if (!status) return;
-        // pgDatabase/platformCache delete is sync (no Promise) — do not chain .then()
-        Promise.resolve(db222.delete(`Expired_${client.user.id}`))
-          .then(() => {
-            client.guilds.cache.forEach((guild) => {
-              guild.leave().catch(() => {});
-            });
-            setTimeout(() => {
-              Promise.resolve(client.user.setAvatar(null))
-                .then(() => client.user.setUsername("VolvoBots"))
-                .then(() =>
-                  setTimeout(() => {
-                    Promise.resolve(client.destroy()).then(() => {
-                      console.log("Bot has been destroyed");
-                    });
-                  }, 10000),
-                )
-                .catch((err) => console.log("Expire Errors: " + err));
-            }, 10000);
-          })
-          .catch((err) => console.log("Expire Errors: " + err));
-      } catch (err) {
-        console.log("Expire Errors: " + err);
-      }
-    }, 30000);
+    every("expiry-purge", 30000, () => {
+        try {
+          const status = db222.get(`Expired_${client.user.id}`) || null;
+          if (!status) return;
+          // pgDatabase/platformCache delete is sync (no Promise) — do not chain .then()
+          Promise.resolve(db222.delete(`Expired_${client.user.id}`))
+            .then(() => {
+              client.guilds.cache.forEach((guild) => {
+                guild.leave().catch(() => {});
+              });
+              setTimeout(() => {
+                Promise.resolve(client.user.setAvatar(null))
+                  .then(() => client.user.setUsername("VolvoBots"))
+                  .then(() =>
+                    setTimeout(() => {
+                      Promise.resolve(client.destroy()).then(() => {
+                        console.log("Bot has been destroyed");
+                      });
+                    }, 10000),
+                  )
+                  .catch((err) => console.log("Expire Errors: " + err));
+              }, 10000);
+            })
+            .catch((err) => console.log("Expire Errors: " + err));
+        } catch (err) {
+          console.log("Expire Errors: " + err);
+        }
+      });
 
-    try {
-      setInterval(async () => {
+    every("giveaway-tick", 7000, async () => {
         const language = (await Botlanguage.get(client.user?.id)) || "En";
         const reply = await messages.get(language);
         const Timer =
@@ -385,11 +399,9 @@ module.exports.run = async (client) => {
                 });
             }
           }
-        } else {
         }
-      }, 7000);
-    } catch (error) {}
-    setInterval(async () => {
+      });
+    every("temp-roles", 1000, async () => {
       try {
         let roles = TempDB.all() || [];
         for (const roleer of roles) {
@@ -430,10 +442,9 @@ module.exports.run = async (client) => {
       } catch (error) {
         console.error(`Error processing temporary roles: ${error}`);
       }
-    }, 1000);
+    });
 
-    try {
-      setInterval(async () => {
+    every("protection-timers", 5000, async () => {
         const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
         const timer =
           protectiondb.get(`protectionTimer_${client.user.id}`) || [];
@@ -474,12 +485,9 @@ module.exports.run = async (client) => {
             }
           });
         }
-      }, 5000);
-    } catch (error) {
-      console.log(error);
-    }
+      });
 
-    setInterval(() => {
+    every("ticket-create-panel", 3000, () => {
       let data = ticketdb2.get(`Create_Panel_${client.user.id}`) || null;
       if (data) {
         ticketdb2.delete(`Create_Panel_${client.user.id}`);
@@ -583,8 +591,8 @@ module.exports.run = async (client) => {
             });
         }
       }
-    }, 3000);
-    setInterval(async () => {
+    });
+    every("ticket-manage-panel", 3000, async () => {
       let data = ticketdb2.get(`Manage_Panel_${client.user.id}`) || null;
       if (data) {
         ticketdb2.delete(`Manage_Panel_${client.user.id}`);
@@ -618,8 +626,8 @@ module.exports.run = async (client) => {
           panel_message.edit({ content: `${message}` });
         }
       }
-    }, 3000);
-    setInterval(async () => {
+    });
+    every("ticket-manage-button", 3000, async () => {
       let data = ticketdb2.get(`Manage_addbutton_${client.user.id}`) || null;
       if (data) {
         ticketdb2.delete(`Manage_addbutton_${client.user.id}`);
@@ -678,9 +686,9 @@ module.exports.run = async (client) => {
             ticketdb.set("ticketData_" + panelID, ticketData);
           });
       }
-    }, 3000);
+    });
 
-    setInterval(async () => {
+    every("protection-whitelist-queue", 3000, async () => {
       let data =
         protectiondb.get(`Protection_Add_Whitelist_${client.user.id}`) || [];
       if (data.length != 0) {
@@ -713,8 +721,8 @@ module.exports.run = async (client) => {
           );
         });
       }
-    }, 3000);
-    setInterval(async () => {
+    });
+    every("apply-create-panel", 3000, async () => {
       let data =
         (await applydb.get(`Create_Applection_${client.user.id}`)) || null;
       if (data) {
@@ -792,8 +800,8 @@ module.exports.run = async (client) => {
             .catch(() => {});
         }
       }
-    }, 3000);
-    setInterval(async () => {
+    });
+    every("apply-update-panel", 3000, async () => {
       let data =
         (await applydb.get(`Applection_Update_Data_${client.user.id}`)) || null;
       if (data) {
@@ -915,10 +923,10 @@ module.exports.run = async (client) => {
           appStatus || "on",
         );
       }
-    }, 3000);
+    });
 
     // Delete Apply panel queued from Nest dashboard
-    setInterval(async () => {
+    every("apply-delete-panel", 3000, async () => {
       let data =
         (await applydb.get(`Delete_Applection_${client.user.id}`)) || null;
       if (!data) return;
@@ -942,9 +950,9 @@ module.exports.run = async (client) => {
       await applydb.delete(`appData_${appID}_${client.user.id}`);
       await applydb.delete(`applectionStatus_${appID}_${client.user.id}`);
       await applydb.delete(`Applied_${appID}_${client.user.id}`);
-    }, 3000);
+    });
 
-    setInterval(async () => {
+    every("selfrole-create-panel", 3000, async () => {
       let data = selfroledb.get(`Create_Panel_${client.user.id}`) || null;
       if (data) {
         let {
@@ -1020,7 +1028,7 @@ module.exports.run = async (client) => {
         try {
           const status = azkarDB.get(`Azkar_${client.user.id}`) || null;
           if (status?.enabled === false) {
-            setTimeout(tick, delayMs);
+            after("azkar-tick", delayMs, tick);
             return;
           }
           const theAzkarRoom = status?.Channel || null;
@@ -1079,7 +1087,7 @@ module.exports.run = async (client) => {
         } catch (err) {
           console.error("[azkar] tick failed:", err?.message || err);
         }
-        setTimeout(tick, delayMs);
+        after("azkar-tick", delayMs, tick);
       };
       tick();
     }
@@ -1090,7 +1098,7 @@ module.exports.run = async (client) => {
     try {
       const { createQuranPlayer } = require("../Utils/Quran/quranPlayer");
       const quranPlayer = createQuranPlayer(client);
-      setInterval(() => {
+      every("quran-watchdog", 10000, () => {
         quranPlayer.watchdog().catch((err) => {
           console.error(
             "[quran] watchdog rejected:",
@@ -1098,13 +1106,13 @@ module.exports.run = async (client) => {
             err?.stack || "",
           );
         });
-      }, 10000);
+      });
     } catch (err) {
       console.error("[quran] player init failed", err?.message || err);
     }
 
     // Apply dashboard actions (accept/reject queued from Nest API)
-    setInterval(async () => {
+    every("dashboard-apply-actions", 3000, async () => {
       try {
         const key = `Dashboard_Apply_Action_${client.user.id}`;
         const queue = (await applydb.get(key)) || [];
@@ -1223,10 +1231,10 @@ module.exports.run = async (client) => {
       } catch (err) {
         console.log("Dashboard apply queue error:", err?.message || err);
       }
-    }, 3000);
+    });
 
     // Apply dashboard audit → Discord logs channel
-    setInterval(async () => {
+    every("dashboard-audit-logs", 3500, async () => {
       try {
         const key = `Dashboard_Logs_${client.user.id}`;
         const queue = (await applydb.get(key)) || [];
@@ -1291,10 +1299,10 @@ module.exports.run = async (client) => {
       } catch (err) {
         console.log("Dashboard logs queue error:", err?.message || err);
       }
-    }, 3500);
+    });
 
     // Dashboard bot profile presence (activity / status)
-    setInterval(async () => {
+    every("dashboard-profile-presence", 2500, async () => {
       try {
         const key = `Dashboard_Profile_${client.user.id}`;
         const queue = (await applydb.get(key)) || [];
@@ -1329,9 +1337,9 @@ module.exports.run = async (client) => {
 
             // Re-assert Streaming after Discord processes the first packet
             if (type === "STREAMING") {
-              setTimeout(() => {
+              after(null, 2000, () => {
                 applyBotPresence(client, name, type, url, "online");
-              }, 2000);
+              });
             }
 
             const presenceStatus = type === "STREAMING" ? "online" : status;
@@ -1354,7 +1362,7 @@ module.exports.run = async (client) => {
       } catch (err) {
         console.log("Dashboard profile queue error:", err?.message || err);
       }
-    }, 2500);
+    });
   } catch (error) {
     console.log(error);
   }

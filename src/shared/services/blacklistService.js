@@ -82,11 +82,16 @@ const Blacklist = {
 };
 
 function startExpiryLoop(client) {
-  setInterval(() => {
-    void purgeExpired(client).catch((err) =>
-      console.warn(`[blacklist] expire loop: ${err.message}`),
-    );
-  }, 60_000);
+  const { getScheduler } = require('../runtime/scheduler');
+  getScheduler().every(
+    60_000,
+    () => {
+      void purgeExpired(client).catch((err) =>
+        console.warn(`[blacklist] expire loop: ${err.message}`),
+      );
+    },
+    { name: 'blacklist-expiry', scope: 'process' },
+  );
 }
 
 module.exports = {

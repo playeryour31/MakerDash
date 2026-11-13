@@ -6,6 +6,8 @@ const path = require("path");
 const fs = require("fs");
 const botDataClient = require("../src/shared/services/botDataClient");
 const featureCache = require("../src/shared/services/featureCache");
+const { getScheduler } = require("../src/shared/runtime/scheduler");
+const { startBotHealthSupervisor } = require("./lib/botHealthSupervisor");
 
 // Hydrate FeatureRecord cache ASAP (handlers fall back to JSON until ready)
 featureCache.hydrateAll().catch((err) => {
@@ -55,7 +57,6 @@ if (!global.loggedInTokens) global.loggedInTokens = new Set();
 if (!global.loggingInTokens) global.loggingInTokens = new Set();
 if (!global.botNotReadySince) global.botNotReadySince = new Map();
 
-let managerTickRunning = false;
 let processGuardsInstalled = false;
 
 function isBenignDiscordAbort(error) {
@@ -454,9 +455,9 @@ async function stopCustomerBot(botID, token) {
 
 installProcessGuardsOnce();
 
-setInterval(async () => {
-  if (managerTickRunning) return;
-  managerTickRunning = true;
+// The scheduler refuses to overlap a job with itself, so the old
+// `managerTickRunning` flag is no longer needed.
+const managerTick = async () => {
   try {
     const runMap = await getRuntimeMap();
     let tokens = await getTokensSnapshot();
@@ -1212,14 +1213,13 @@ setInterval(async () => {
     }
   } catch (err) {
     console.error("❌ Manager Error:", err);
-  } finally {
-    managerTickRunning = false;
   }
-}, MANAGER_TICK_MS);
+};
+
+getScheduler().every(MANAGER_TICK_MS, managerTick, { name: "manager-tick", scope: "process" });
 
 // Periodic integrity + care for Maker-created bots (BotInstance / BotRuntime / live report)
 try {
-  const { startBotHealthSupervisor } = require('./lib/botHealthSupervisor');
   startBotHealthSupervisor({ forceCustomerReconnect });
 } catch (err) {
   console.warn(`[Maker] bot health supervisor failed to start: ${err.message}`);
