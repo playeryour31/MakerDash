@@ -21,7 +21,6 @@
     "build": "turbo run build",
     "test": "npm run build --workspace=@maker/database --silent && npm run build --workspace=@maker/queue --silent && npm run build --workspace=@maker/subscriptions --silent && npm run build --workspace=@maker/api --silent && node --test",
     "bot": "node scripts/run-bot.js",
-    "coarena": "node scripts/coarena.js",
     "api:dev": "npm run start:dev --workspace=@maker/api",
     "web:dev": "npm run dev --workspace=@maker/web",
     "db:generate": "npm run generate --workspace=@maker/database",
