@@ -5,11 +5,7 @@ let shared: IORedis | null = null;
 let redisErrorLogged = false;
 
 export function getRedisUrl(): string {
-  return (
-    process.env.REDIS_URL ||
-    process.env.REDIS_URI ||
-    'redis://127.0.0.1:6379'
-  );
+  return process.env.REDIS_URL || process.env.REDIS_URI || 'redis://127.0.0.1:6379';
 }
 
 function redisOpts(): {
@@ -82,10 +78,7 @@ export async function probeRedisTcp(timeoutMs = 400): Promise<boolean> {
 
 /** TCP probe — does not leave a reconnecting ioredis client hanging. */
 export async function isRedisReachable(timeoutMs = 800): Promise<boolean> {
-  if (
-    process.env.ENABLE_BOT_QUEUE === '0' ||
-    process.env.ENABLE_BOT_QUEUE === 'false'
-  ) {
+  if (process.env.ENABLE_BOT_QUEUE === '0' || process.env.ENABLE_BOT_QUEUE === 'false') {
     return false;
   }
   return probeRedisTcp(timeoutMs);

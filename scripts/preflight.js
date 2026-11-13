@@ -95,7 +95,8 @@ function main() {
     errors.push('deploy/nginx.maker.conf is missing.');
   } else {
     const m = /upstream\s+maker_web\s*\{[^}]*?server\s+[^\s:]+:(\d+)\s*;/s.exec(nginx);
-    if (!m) errors.push('Could not find `upstream maker_web { server host:PORT; }` in nginx config.');
+    if (!m)
+      errors.push('Could not find `upstream maker_web { server host:PORT; }` in nginx config.');
     else nginxPort = Number(m[1]);
   }
 
@@ -103,7 +104,11 @@ function main() {
   rows.push(['Web listens', `WEB_PORT=${webPort}`, web.file]);
   rows.push(['Next → API proxy', internalOrigin || '(unset)', web.file]);
   rows.push(['Bot → API', internalApiUrl || '(unset)', api.file]);
-  rows.push(['nginx → web', nginxPort ? `127.0.0.1:${nginxPort}` : '(unset)', 'deploy/nginx.maker.conf']);
+  rows.push([
+    'nginx → web',
+    nginxPort ? `127.0.0.1:${nginxPort}` : '(unset)',
+    'deploy/nginx.maker.conf',
+  ]);
 
   if (nginxPort !== null && nginxPort !== webPort) {
     errors.push(`nginx upstream ${nginxPort} ≠ WEB_PORT ${webPort}.`);

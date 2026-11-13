@@ -44,11 +44,7 @@ function sanitizeJson(value: any): any {
   return value;
 }
 
-async function upsertFeature(
-  namespace: string,
-  key: string,
-  value: any,
-) {
+async function upsertFeature(namespace: string, key: string, value: any) {
   if (dryRun) return;
   const clean = sanitizeJson(value);
   await prisma.featureRecord.upsert({
@@ -133,10 +129,7 @@ const PLATFORM: Array<[string, string]> = [
   ['errors', 'Database/Errors/Errors.json'],
 ];
 
-async function importKvFiles(
-  pairs: Array<[string, string]>,
-  kind: 'feature' | 'platform',
-) {
+async function importKvFiles(pairs: Array<[string, string]>, kind: 'feature' | 'platform') {
   let count = 0;
   for (const [ns, rel] of pairs) {
     const raw = readJson(rel);
@@ -199,8 +192,7 @@ async function importCommands() {
     if (!m) continue;
     const clientId = m[1];
     const raw = readJson(path.join('Database', 'CommandsData', file));
-    const commands =
-      raw[`commands_${clientId}`] || raw.commands || Object.values(raw)[0] || [];
+    const commands = raw[`commands_${clientId}`] || raw.commands || Object.values(raw)[0] || [];
     if (!dryRun) {
       await prisma.botCommandConfig.upsert({
         where: { clientId },
@@ -218,11 +210,7 @@ async function importBalancesFromJsonBackup() {
   const raw = readJson('Database/Backups/Coins.json');
   let n = 0;
   // shape unknown — if array of {userid,guild,balance}
-  const list = Array.isArray(raw)
-    ? raw
-    : Array.isArray(raw.balances)
-      ? raw.balances
-      : [];
+  const list = Array.isArray(raw) ? raw : Array.isArray(raw.balances) ? raw.balances : [];
   for (const row of list) {
     const userId = String(row.userid || row.userId || '');
     const guildId = String(row.guild || row.guildId || '');
@@ -235,9 +223,7 @@ async function importBalancesFromJsonBackup() {
           guildId,
           coins: Number(row.coins || row.balance || 0),
           balance: Number(row.balance || row.coins || 0),
-          purchaseDate: row.purchaseDate
-            ? new Date(row.purchaseDate)
-            : new Date(),
+          purchaseDate: row.purchaseDate ? new Date(row.purchaseDate) : new Date(),
         },
         update: {
           coins: Number(row.coins || row.balance || 0),

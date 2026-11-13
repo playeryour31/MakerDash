@@ -1,0 +1,18 @@
+# Legacy trees are excluded on purpose: reformatting 40k lines of Discord code
+# would bury real changes. They get touched file-by-file as phases land.
+Main/**
+Maker/**
+Database/**
+archive/**
+Subscriptions/**
+packages/database/prisma/migrations/**
+
+node_modules
+dist
+.next
+.turbo
+coverage
+Main/Backups
+
+package-lock.json
+**/*.md

@@ -1,8 +1,5 @@
 import { Queue, type JobsOptions } from 'bullmq';
-import {
-  createRedisConnection,
-  isRedisReachable,
-} from './connection';
+import { createRedisConnection, isRedisReachable } from './connection';
 import { QUEUE_NAMES, type QueueName } from './names';
 import type {
   ApplyActionJob,

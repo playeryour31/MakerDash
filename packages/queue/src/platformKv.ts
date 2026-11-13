@@ -16,9 +16,7 @@ let redisDownLogged = false;
  * Best-effort pub so the bot process can prime platformCache without restart.
  * Skips quietly when Redis is down (bot uses PG poll fallback).
  */
-export async function publishPlatformKv(
-  message: PlatformKvMessage,
-): Promise<void> {
+export async function publishPlatformKv(message: PlatformKvMessage): Promise<void> {
   if (!message?.namespace || message.key == null || message.key === '') return;
 
   const now = Date.now();
@@ -40,7 +38,7 @@ export async function publishPlatformKv(
   const payload = JSON.stringify({
     namespace: String(message.namespace),
     key: String(message.key),
-    value: message.deleted ? null : message.value ?? null,
+    value: message.deleted ? null : (message.value ?? null),
     deleted: Boolean(message.deleted),
   });
   const r = createRedisConnection();
@@ -53,9 +51,7 @@ export async function publishPlatformKv(
     redisDownUntil = Date.now() + 30_000;
     if (!redisDownLogged) {
       redisDownLogged = true;
-      console.warn(
-        `[platform-kv] publish failed: ${err?.message || err} — using bot PG poll`,
-      );
+      console.warn(`[platform-kv] publish failed: ${err?.message || err} — using bot PG poll`);
     }
   } finally {
     try {

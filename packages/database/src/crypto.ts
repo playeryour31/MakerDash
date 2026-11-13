@@ -12,10 +12,7 @@ const keyCache = new Map<string, Buffer>();
 let warnedJwtFallback = false;
 
 function isProduction(): boolean {
-  return (
-    process.env.NODE_ENV === 'production' ||
-    process.env.MAKER_ENV === 'production'
-  );
+  return process.env.NODE_ENV === 'production' || process.env.MAKER_ENV === 'production';
 }
 
 function deriveKey(raw: string): Buffer {
@@ -53,7 +50,7 @@ function resolveKey(secret?: string): Buffer {
     if (primary.length < MIN_KEY_LENGTH) {
       throw new Error(
         `[crypto] ${KEY_ENV} is too short (${primary.length} < ${MIN_KEY_LENGTH} chars). ` +
-          'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"',
+          "Generate one with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
       );
     }
     return deriveKey(primary);
@@ -102,10 +99,7 @@ export function decryptBotToken(cipherText: string, secret?: string): string {
   }
   const decipher = createDecipheriv(ALGO, key, Buffer.from(ivB64, 'base64'));
   decipher.setAuthTag(Buffer.from(tagB64, 'base64'));
-  const dec = Buffer.concat([
-    decipher.update(Buffer.from(dataB64, 'base64')),
-    decipher.final(),
-  ]);
+  const dec = Buffer.concat([decipher.update(Buffer.from(dataB64, 'base64')), decipher.final()]);
   return dec.toString('utf8');
 }
 
@@ -117,8 +111,6 @@ export function assertTokenEncryptionKey(secret?: string): void {
   const probe = 'maker-key-self-test';
   const roundTrip = decryptBotToken(encryptBotToken(probe, secret), secret);
   if (roundTrip !== probe) {
-    throw new Error(
-      `[crypto] ${KEY_ENV} failed a round-trip self-test; refusing to start.`,
-    );
+    throw new Error(`[crypto] ${KEY_ENV} failed a round-trip self-test; refusing to start.`);
   }
 }

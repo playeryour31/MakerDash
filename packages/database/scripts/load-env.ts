@@ -15,7 +15,6 @@ function loadEnv(): void {
     path.resolve(__dirname, '../../../Apps/api/.env'),
   ];
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const dotenv = require('dotenv') as typeof import('dotenv');
     for (const file of files) {
       if (fs.existsSync(file)) dotenv.config({ path: file, quiet: true });

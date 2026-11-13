@@ -1,37 +1,97 @@
 # Architecture
 
-```text
-Apps/
-  web/          Next.js dashboard (UI)           @maker/web
-  api/          Nest.js API                      @maker/api
-  bot/          Turbo entry → scripts/run-bot.js @maker/bot
-packages/
-  database/     Prisma schema + client (PostgreSQL)
-  queue/        BullMQ + ioredis (@maker/queue)
+## Runtime processes
 
-Main/           Control Discord bot (bot maker)
-Maker/          Customer multi-bots runtime
-src/shared/     botDataClient / featureCache / platformCache / balance / blacklist
-Database/       Legacy JSON archive (not SSOT; catalogs excluded below)
-docker-compose.yml  PostgreSQL + Redis
+Three processes share one PostgreSQL database. Nothing else is shared.
+
+```text
+┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐
+│   Apps/web       │   │   Apps/api       │   │   bot process    │
+│   Next.js :4084  │──▶│   NestJS :3011   │   │   Main + Maker   │
+│   (browser)      │   │   (HTTP + BullMQ │   │   (Discord.js)   │
+│                  │   │    producer)     │   │   + BullMQ worker│
+└──────────────────┘   └──────────────────┘   └──────────────────┘
+        │                      │                       │
+        └──────────┬───────────┴───────────┬───────────┘
+                   ▼                       ▼
+            PostgreSQL :5432          Redis :6379
+            (Prisma, SSOT)            (cache + queues)
 ```
 
-## Data stores
+| Process | Entry point | Notes |
+|---------|-------------|-------|
+| Web | `Apps/web` (`next` standalone) | Dashboard UI only; never touches the DB |
+| API | `Apps/api/src/main.ts` | Owns auth, provisioning, apply, protection, partner APIs |
+| Bot | `scripts/run-bot.js` → `src/maker/bootstrap.js` | Runs the control bot (`Main/`) and every customer bot (`Maker/`) in one Node process |
 
-| Store | Role |
-|-------|------|
-| **PostgreSQL (SSOT)** | BotInstance, Runtime, Apply, FeatureRecord, PlatformRecord, BotBalance, Prefix, Prices, Commands, UserBlacklist, DashboardAccess, TokenPool, ApplyAuditLog |
-| **Redis + BullMQ** | Dashboard → Discord job queues (`bot.panel.*`, `bot.apply.action`, `bot.dashboard.log`) |
-| **JSON catalogs only** | `Main/Resources/Commands.json`, `Main/Resources/Bots.json` (read-only import) |
-| **MongoDB** | Removed |
+`Main/index.js` is a one-line re-export of `src/maker/bootstrap.js`; the real
+control-bot code still lives in `Main/`.
 
-### Runtime flags (`Apps/api/.env`)
+## Directory map
 
 ```text
-DATABASE_URL=postgresql://postgres:maker@127.0.0.1:5432/maker?schema=public
+Apps/
+  web/          Next.js dashboard                    @maker/web
+  api/          NestJS API                           @maker/api
+  bot/          Turbo entry → scripts/run-bot.js      @maker/bot
+packages/
+  database/     Prisma schema, client, token crypto   @maker/database
+  queue/        BullMQ producer/worker + Redis        @maker/queue
+  subscriptions/(phase 1) pure subscription rules     @maker/subscriptions
+Main/           Control Discord bot handlers (legacy JS)
+Maker/          Customer multi-bot runtime (legacy JS)
+src/shared/     Bridges between legacy JS and Postgres/Redis
+src/maker/      Bootstrap, client factory, keep-alive
+Database/       Legacy JSON archive (see "Known debt")
+Maker/Json-Database/  Legacy JSON archive (see "Known debt")
+archive/        Dead code kept for reference, never required at runtime
+```
+
+## Data ownership
+
+Each fact has exactly one owner. Everything else reads through a typed service.
+
+| Fact | Owner | Readers |
+|------|-------|---------|
+| Bot identity, token (encrypted), owner, guild | `BotInstance` | API repositories, `src/shared/services/mainDb/botsService.js` |
+| Running state | `BotRuntime` | `runtimeService`, `Maker/index.js` reconcile loop |
+| Prefix / prices / command config | `BotPrefix`, `GuildBotPrice`, `BotCommandConfig` | `mainDb/*Service` |
+| Apply panels & applications | `ApplyPanel`, `ApplyApplication`, `ApplyGuildSettings` | `ApplyStoreService` *(still dual-writes JSON — see debt)* |
+| Dashboard access, admins | `DashboardAccess` | `dashboard-access.service.ts` |
+| Balances | `BotBalance` | `balanceService.js` |
+| Blacklist | `UserBlacklist` | `blacklistService.js` |
+| Token pools | `TokenPoolEntry` | `tokenPoolService.js` |
+| Feature settings (tickets, protection, azkar, quran…) | `FeatureRecord` | `featureCache` |
+| Loose KV mirrors | `PlatformRecord` | `platformCache` |
+| Catalogs (`Main/Resources/*.json`) | filesystem, read-only | `staticCatalog` |
+
+### Two bridges, one job
+
+The legacy Discord code calls `new Database(path)` hundreds of times (296
+call sites, 54 distinct paths). Two `st.db`-compatible shims keep those calls
+working without touching 40k lines of bot code:
+
+| Bridge | Used by | Backing store |
+|--------|---------|---------------|
+| `src/shared/db/pgDatabase.js` | Customer bots, via `installStDbBridge()` `Module._load` patch | `platformCache` + `featureCache` |
+| `src/shared/services/mainDb/Database.js` | Control bot (`Main/`) | Same caches, explicit imports |
+
+`src/shared/db/pathMap.js` is the single routing table mapping a legacy path to
+`catalog`, a `FeatureRecord` namespace, a typed table, or a `PlatformRecord`
+mirror. Both bridges share it, so a path resolves the same way regardless of
+caller.
+
+**Phase 2 merges these two bridges into `packages/data-bridge`.**
+
+## Runtime flags
+
+Set in `Apps/api/.env`; the bot process loads the same file (`scripts/run-bot.js`).
+
+```text
+DATABASE_URL=postgresql://...
 REDIS_URL=redis://127.0.0.1:6379
-DATA_WRITE_MODE=postgres
-DATA_READ_SOURCE=postgres
+DATA_WRITE_MODE=postgres      # postgres | dual | json
+DATA_READ_SOURCE=postgres     # postgres | json
 DATA_SHADOW_COMPARE=false
 USE_BOT_DATA_API=true
 BOT_INTERNAL_API_KEY=...
@@ -39,21 +99,10 @@ INTERNAL_API_URL=http://127.0.0.1:3011/api
 BOT_TOKEN_ENCRYPTION_KEY=...
 ```
 
-`scripts/run-bot.js` loads the same flags and installs the `st.db` → Postgres bridge before Main/Maker boot.
+`DataConsistencyService` reports JSON↔Postgres mismatches when shadow compare
+is on. `npm run metrics` prints the coupling that these flags exist to remove.
 
-### Cutover
-
-- Nest: provision / access / admins / security / audit → Prisma; queues → BullMQ
-- Discord Main/Maker: `require('st.db')` shim routes mutable paths to Platform/Feature/typed tables
-- `Subscriptions/` bot code is archived (`archive/Subscriptions/`, see `archive/README.md`);
-  only `Subscriptions/Database/` stays live as legacy data (backup zip, blacklist import, `subs_*` namespaces)
-- Maker: `featureDb` / `applyDb` Postgres-only; BullMQ workers deliver dashboard jobs
-- Runtime/token snapshots in `Maker/index.js` are cached: runtimes follow the tick
-  (`MAKER_RUNTIME_REFRESH_MS` 3s) while token rows (decrypt-heavy) refresh every
-  `MAKER_TOKENS_REFRESH_MS` (60s) or immediately when a desired bot has no token
-  (max once per 10s). Previously both were re-read every 3s.
-
-### Security & operations
+## Security & operations
 
 - **Token encryption** — bot tokens are AES-256-GCM encrypted at rest, keyed by
   `BOT_TOKEN_ENCRYPTION_KEY` (scrypt-derived, cached after first use). The key
@@ -66,7 +115,7 @@ BOT_TOKEN_ENCRYPTION_KEY=...
   encryption-key copies, printing a key fingerprint (never the value).
 - **Secrets** — never in the repo. Everything is read from env first
   (`src/shared/config/index.js`): `MAIN_BOT_TOKEN`, `MAIN_LOG_BOT_TOKEN`,
-  `OPENAI_API_KEY`, `MAKER_WEBHOOK_TOKEN`, `MONGODB_URI`.
+  `OPENAI_API_KEY`, `MAKER_WEBHOOK_TOKEN`.
   Rotation runbook: [SECURITY-ROTATION.md](SECURITY-ROTATION.md).
 - **Secret scan** — `npm run scan:secrets` (what git would commit) and
   `npm run scan:secrets:all` (including ignored files). A pre-commit hook is
@@ -83,7 +132,44 @@ BOT_TOKEN_ENCRYPTION_KEY=...
   every historical JSON shape; `import-phase3.ts` was fixed to use the same
   normalizer.
 
-### DB commands
+## Quality gates
+
+```bash
+npm run verify        # lint + format:check + test + preflight + scan:secrets + metrics
+npm run metrics       # the structural debt scoreboard (read-only)
+npm run metrics:baseline   # fails if any measured number regressed
+```
+
+`scripts/metrics.baseline.json` is the ratchet. When a phase improves a number,
+re-run `node scripts/metrics.js --write-baseline` and commit the new baseline —
+the diff of that file *is* the progress report.
+
+ESLint is deliberately asymmetric: `Apps/**` and `packages/**` get strict rules,
+`Main/` and `Maker/` get bug-catching rules only. Prettier owns
+`scripts/**` and `packages/**`; the legacy and dashboard trees are formatted
+file-by-file as they are touched, so real changes stay visible in review.
+
+## Known debt (measured, not estimated)
+
+Produced by `npm run metrics`:
+
+| Metric | Value | Target |
+|--------|-------|--------|
+| `new Database()` call sites | 302 | 0 outside the bridge |
+| Distinct legacy paths | 54 | routed via one table |
+| `setInterval` calls | 34 | ≤ 8 |
+| `console.*` calls | 644 | one structured logger |
+| `createRequire()` in API | 2 | 0 |
+| `requireFromHere()` in API | 5 | 0 |
+| Direct `fs` use in API | 30 | 0 |
+| Legacy JSON on disk | 10.0 MB | 0 |
+| Largest file | `Maker/Events/ready.js` 1,362 lines | < 400 |
+
+Subscription policy is implemented three times (`subscriptionLifecycle.js`,
+`subscription-status.service.ts`, and a commented block in `Main/Events/ready.js`).
+Phase 1 collapses these into `@maker/subscriptions`.
+
+## DB commands
 
 ```bash
 npm run db:up

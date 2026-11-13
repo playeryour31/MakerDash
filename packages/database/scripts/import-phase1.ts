@@ -65,8 +65,7 @@ async function importBots() {
       console.warn(`skip bot missing id/token: ${clientId}`);
       continue;
     }
-    const language =
-      lang[clientId] === 'En' ? Language.En : Language.Ar;
+    const language = lang[clientId] === 'En' ? Language.En : Language.Ar;
     if (lang[clientId]) stats.languages += 1;
 
     const data = {
@@ -127,10 +126,7 @@ async function importRuntime() {
 }
 
 async function importApply() {
-  const raw = readJson('Maker/Json-Database/Settings/Apply.json') as Record<
-    string,
-    any
-  >;
+  const raw = readJson('Maker/Json-Database/Settings/Apply.json') as Record<string, any>;
 
   for (const [key, value] of Object.entries(raw)) {
     if (key.startsWith('appData_')) {
@@ -166,10 +162,7 @@ async function importApply() {
             channelId: value?.channel ? String(value.channel) : null,
             guildId: value?.guild ? String(value.guild) : null,
             message: String(value?.message || ''),
-            status:
-              statusRaw === 'off'
-                ? ApplyPanelStatus.off
-                : ApplyPanelStatus.on,
+            status: statusRaw === 'off' ? ApplyPanelStatus.off : ApplyPanelStatus.on,
             questions: value?.questions ?? [],
             legacyAsks: Object.keys(legacyAsks).length ? legacyAsks : undefined,
           },
@@ -177,10 +170,7 @@ async function importApply() {
             channelId: value?.channel ? String(value.channel) : null,
             guildId: value?.guild ? String(value.guild) : null,
             message: String(value?.message || ''),
-            status:
-              statusRaw === 'off'
-                ? ApplyPanelStatus.off
-                : ApplyPanelStatus.on,
+            status: statusRaw === 'off' ? ApplyPanelStatus.off : ApplyPanelStatus.on,
             questions: value?.questions ?? [],
             legacyAsks: Object.keys(legacyAsks).length ? legacyAsks : undefined,
           },
@@ -210,7 +200,11 @@ async function importApply() {
       continue;
     }
 
-    if (key.startsWith('applyAdmin_') || key.startsWith('resultsLog_') || key.startsWith('dm_Mode_')) {
+    if (
+      key.startsWith('applyAdmin_') ||
+      key.startsWith('resultsLog_') ||
+      key.startsWith('dm_Mode_')
+    ) {
       let prefix = 'applyAdmin_';
       if (key.startsWith('resultsLog_')) prefix = 'resultsLog_';
       if (key.startsWith('dm_Mode_')) prefix = 'dm_Mode_';
@@ -241,7 +235,11 @@ async function importApply() {
       if (prefix === 'resultsLog_' && raw[`applyAdmin_${guildId}_${botClientId}`] !== undefined) {
         continue;
       }
-      if (prefix === 'dm_Mode_' && (raw[`applyAdmin_${guildId}_${botClientId}`] !== undefined || raw[`resultsLog_${guildId}_${botClientId}`] !== undefined)) {
+      if (
+        prefix === 'dm_Mode_' &&
+        (raw[`applyAdmin_${guildId}_${botClientId}`] !== undefined ||
+          raw[`resultsLog_${guildId}_${botClientId}`] !== undefined)
+      ) {
         continue;
       }
 

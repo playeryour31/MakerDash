@@ -17,9 +17,7 @@ function workerOpts(): WorkerOptions {
   };
 }
 
-export async function startBotWorkers(
-  handlers: BotWorkerHandlers,
-): Promise<Worker[]> {
+export async function startBotWorkers(handlers: BotWorkerHandlers): Promise<Worker[]> {
   const ok = await isRedisReachable();
   if (!ok) {
     console.warn(
@@ -48,9 +46,7 @@ export async function startBotWorkers(
       connection: conn,
     });
     w.on('failed', (job, err) => {
-      console.warn(
-        `[queue] ${name} job ${job?.id} failed: ${err?.message || err}`,
-      );
+      console.warn(`[queue] ${name} job ${job?.id} failed: ${err?.message || err}`);
     });
     w.on('error', (err) => {
       console.warn(`[queue] ${name} worker error: ${err.message}`);

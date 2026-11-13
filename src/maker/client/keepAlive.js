@@ -140,9 +140,9 @@ function attachMainKeepAlive(client, token) {
       log.error(`login failed: ${err.message || err}`);
       state.loggingIn = false;
       reviveWebSocketManager(client);
-      if (isNetworkLoginError(err) || true) {
-        scheduleReconnect(err.code || err.message);
-      }
+      // Every non-fatal login failure retries: network errors, rate limits and
+      // Discord 5xx all benefit from backoff. Only fatal token errors stop.
+      scheduleReconnect(err.code || err.message);
       return;
     } finally {
       state.loggingIn = false;

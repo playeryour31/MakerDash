@@ -30,7 +30,6 @@ function fromObject(data) {
 }
 
 function fromRequire(absOrRelModule) {
-  // eslint-disable-next-line import/no-dynamic-require, global-require
   return fromObject(require(absOrRelModule));
 }
 

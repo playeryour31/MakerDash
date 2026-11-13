@@ -29,8 +29,7 @@ function tokenFromValue(value: any): string | null {
   return null;
 }
 
-const DISCORD_TOKEN =
-  /^[A-Za-z0-9_-]{23,28}\.[A-Za-z0-9_-]{6,7}\.[A-Za-z0-9_-]{25,45}$/;
+const DISCORD_TOKEN = /^[A-Za-z0-9_-]{23,28}\.[A-Za-z0-9_-]{6,7}\.[A-Za-z0-9_-]{25,45}$/;
 
 /**
  * Handles every legacy pool shape:
@@ -100,15 +99,13 @@ async function importDashboardAccess() {
           type: String(record.type || 'Apply'),
           ownerId: record.ownerId ? String(record.ownerId) : null,
           guildId: record.guildId ? String(record.guildId) : null,
-          purchasesId:
-            record.purchasesId != null ? String(record.purchasesId) : null,
+          purchasesId: record.purchasesId != null ? String(record.purchasesId) : null,
         },
         update: {
           type: String(record.type || 'Apply'),
           ownerId: record.ownerId ? String(record.ownerId) : null,
           guildId: record.guildId ? String(record.guildId) : null,
-          purchasesId:
-            record.purchasesId != null ? String(record.purchasesId) : null,
+          purchasesId: record.purchasesId != null ? String(record.purchasesId) : null,
         },
       });
     }
@@ -191,14 +188,8 @@ async function main() {
   await importTokenPool('botmaker', 'Database/Others/BotMakerTokens.json');
   await importTokenPool('expiring', 'Database/Others/ExpTokens.json');
   await importDashboardAccess();
-  await importPlatformBlob(
-    'dashboard_bot_admins',
-    'Database/Dashboard/BotAdmins.json',
-  );
-  await importPlatformBlob(
-    'dashboard_account_security',
-    'Database/Dashboard/AccountSecurity.json',
-  );
+  await importPlatformBlob('dashboard_bot_admins', 'Database/Dashboard/BotAdmins.json');
+  await importPlatformBlob('dashboard_account_security', 'Database/Dashboard/AccountSecurity.json');
   await importPlatformBlob('botmaker_ids', 'Database/BotMaker/IDs.json');
 
   // Subscriptions leftovers

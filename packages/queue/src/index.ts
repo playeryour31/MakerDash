@@ -24,13 +24,5 @@ export {
   closeAllQueues,
   getQueue,
 } from './producer';
-export {
-  startBotWorkers,
-  stopWorkers,
-  type BotWorkerHandlers,
-} from './worker';
-export {
-  PLATFORM_KV_CHANNEL,
-  publishPlatformKv,
-  type PlatformKvMessage,
-} from './platformKv';
+export { startBotWorkers, stopWorkers, type BotWorkerHandlers } from './worker';
+export { PLATFORM_KV_CHANNEL, publishPlatformKv, type PlatformKvMessage } from './platformKv';

@@ -70,10 +70,7 @@ async function importJsonBlacklists() {
       for (const entry of entries) {
         if (!entry || typeof entry !== 'object') continue;
         const userId = String(
-          (entry as any).userId ||
-            (entry as any).UserID ||
-            (entry as any).id ||
-            '',
+          (entry as any).userId || (entry as any).UserID || (entry as any).id || '',
         );
         if (!userId || !/^\d{5,}$/.test(userId)) continue;
         if (!dryRun) {

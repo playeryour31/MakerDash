@@ -31,8 +31,24 @@ const SKIP_DIRS = new Set([
   'vault',
 ]);
 const TEXT_EXT = new Set([
-  '.js', '.cjs', '.mjs', '.ts', '.tsx', '.jsx', '.json', '.md', '.txt',
-  '.yml', '.yaml', '.env', '.conf', '.ini', '.sh', '.ps1', '.prisma', '.sql',
+  '.js',
+  '.cjs',
+  '.mjs',
+  '.ts',
+  '.tsx',
+  '.jsx',
+  '.json',
+  '.md',
+  '.txt',
+  '.yml',
+  '.yaml',
+  '.env',
+  '.conf',
+  '.ini',
+  '.sh',
+  '.ps1',
+  '.prisma',
+  '.sql',
 ]);
 const MAX_BYTES = 4 * 1024 * 1024;
 
@@ -104,8 +120,7 @@ function hasGit() {
 }
 
 function gitFiles(args) {
-  const out =
-    execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' }) || '';
+  const out = execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' }) || '';
   return out
     .split(/\r?\n/)
     .map((s) => s.trim())
@@ -169,11 +184,7 @@ function scanFile(rel) {
         if (rule.minLength && value.length < rule.minLength) continue;
         if (rule.requireDigit && !/\d/.test(value)) continue;
         if (rule.ignoreValue && rule.ignoreValue.test(value)) continue;
-        if (
-          rule.ignoreValue &&
-          rule.valueGroup &&
-          rule.ignoreValue.test(m[0].replace(value, ''))
-        ) {
+        if (rule.ignoreValue && rule.valueGroup && rule.ignoreValue.test(m[0].replace(value, ''))) {
           continue;
         }
         findings.push({
@@ -231,12 +242,8 @@ function main() {
       console.log(`   line ${f.line}: ${f.label} → ${f.preview}`);
     }
   }
-  console.log(
-    `\n🚨 ${findings.length} potential secret(s) in ${byFile.size} file(s).`,
-  );
-  console.log(
-    '   Rotate exposed credentials, move them to .env / PostgreSQL, then re-run.\n',
-  );
+  console.log(`\n🚨 ${findings.length} potential secret(s) in ${byFile.size} file(s).`);
+  console.log('   Rotate exposed credentials, move them to .env / PostgreSQL, then re-run.\n');
   process.exitCode = 1;
 }
 

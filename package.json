@@ -34,6 +34,12 @@
     "scan:secrets": "node scripts/scan-secrets.js",
     "scan:secrets:all": "node scripts/scan-secrets.js --all",
     "preflight": "node scripts/preflight.js",
+    "metrics": "node scripts/metrics.js",
+    "metrics:baseline": "node scripts/metrics.js --baseline",
+    "lint": "eslint . --max-warnings 68",
+    "format": "prettier --write \"scripts/**/*.js\" \"packages/**/*.ts\"",
+    "format:check": "prettier --check \"scripts/**/*.js\" \"packages/**/*.ts\"",
+    "verify": "npm run lint && npm run format:check && npm test && npm run preflight && npm run scan:secrets && npm run metrics:baseline",
     "db:import:tokens": "node scripts/import-legacy-token-pools.js",
     "db:import:tokens:apply": "node scripts/import-legacy-token-pools.js --apply"
   },
@@ -68,7 +74,14 @@
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "turbo": "^2.11.5"
+    "@eslint/js": "^9.39.5",
+    "@next/eslint-plugin-next": "^15.5.29",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.5.0",
+    "prettier": "^3.10.1",
+    "turbo": "^2.11.5",
+    "typescript-eslint": "^8.72.2"
   },
   "packageManager": "npm@11.16.0",
   "allowScripts": {

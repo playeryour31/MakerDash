@@ -1,0 +1,75 @@
+name: verify
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: maker
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports: ['5432:5432']
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports: ['6379:6379']
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/maker?schema=public
+      REDIS_URL: redis://127.0.0.1:6379
+      # Test-only key; never used outside CI.
+      BOT_TOKEN_ENCRYPTION_KEY: ci-only-key-00000000000000000000000000000000
+      JWT_SECRET: ci-only-jwt-00000000000000000000000000000000
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Type check
+        run: |
+          npx tsc -p Apps/api/tsconfig.json --noEmit
+          npx tsc -p packages/database/tsconfig.json --noEmit
+          npx tsc -p packages/queue/tsconfig.json --noEmit
+
+      - name: Secret scan
+        run: npm run scan:secrets:all
+
+      - name: Structural debt must not regress
+        run: npm run metrics:baseline

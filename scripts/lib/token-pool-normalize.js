@@ -12,26 +12,11 @@
  *   ["<token>", ...]
  */
 
-const DISCORD_TOKEN =
-  /^[A-Za-z0-9_-]{23,28}\.[A-Za-z0-9_-]{6,7}\.[A-Za-z0-9_-]{25,45}$/;
+const DISCORD_TOKEN = /^[A-Za-z0-9_-]{23,28}\.[A-Za-z0-9_-]{6,7}\.[A-Za-z0-9_-]{25,45}$/;
 
-const KNOWN_LIST_KEYS = [
-  'Tokens',
-  'TOKENS',
-  'tokens',
-  'Subscriptions',
-  'Bots',
-  'items',
-  'data',
-];
+const KNOWN_LIST_KEYS = ['Tokens', 'TOKENS', 'tokens', 'Subscriptions', 'Bots', 'items', 'data'];
 
-const TOKEN_VALUE_KEYS = [
-  'token',
-  'Token',
-  'TOKEN',
-  'access_token',
-  'accessToken',
-];
+const TOKEN_VALUE_KEYS = ['token', 'Token', 'TOKEN', 'access_token', 'accessToken'];
 
 function tokenFromValue(value) {
   if (typeof value === 'string') return value;

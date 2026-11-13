@@ -124,9 +124,7 @@ async function main() {
 
   if (!apply) {
     if (asJson) {
-      process.stdout.write(
-        `${JSON.stringify({ dryRun: true, pools: summary }, null, 2)}\n`,
-      );
+      process.stdout.write(`${JSON.stringify({ dryRun: true, pools: summary }, null, 2)}\n`);
     } else {
       console.log('\n📦 Legacy token pools — DRY RUN (nothing written)\n');
       for (const p of summary) {
@@ -136,9 +134,7 @@ async function main() {
         console.log(`  ${p.kind.padEnd(12)} ${status}`);
         console.log(`  ${''.padEnd(12)} ${p.file}  [${p.source}]`);
       }
-      console.log(
-        '\nRun with --apply to upsert into Postgres (idempotent).\n',
-      );
+      console.log('\nRun with --apply to upsert into Postgres (idempotent).\n');
     }
     return;
   }

@@ -20,9 +20,7 @@ function parseBotDate(value) {
 (async () => {
   const raw = JSON.parse(fs.readFileSync(tokensFile, 'utf8'));
   const bots = Array.isArray(raw.Bots) ? raw.Bots : [];
-  const run = fs.existsSync(runFile)
-    ? JSON.parse(fs.readFileSync(runFile, 'utf8'))
-    : {};
+  const run = fs.existsSync(runFile) ? JSON.parse(fs.readFileSync(runFile, 'utf8')) : {};
 
   let created = 0;
   let runtime = 0;

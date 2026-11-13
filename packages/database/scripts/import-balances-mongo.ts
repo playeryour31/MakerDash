@@ -5,8 +5,7 @@
 import mongoose from 'mongoose';
 import { prisma } from '../src/index';
 
-const uri =
-  process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/maker-apply';
+const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/maker-apply';
 const dryRun = process.argv.includes('--dry-run');
 
 async function main() {
@@ -29,9 +28,7 @@ async function main() {
           guildId,
           coins,
           balance,
-          purchaseDate: row.purchaseDate
-            ? new Date(row.purchaseDate)
-            : new Date(),
+          purchaseDate: row.purchaseDate ? new Date(row.purchaseDate) : new Date(),
         },
         update: { coins, balance },
       });

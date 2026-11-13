@@ -1,9 +1,5 @@
 export { prisma, createPrismaClient } from './client';
-export {
-  encryptBotToken,
-  decryptBotToken,
-  assertTokenEncryptionKey,
-} from './crypto';
+export { encryptBotToken, decryptBotToken, assertTokenEncryptionKey } from './crypto';
 export {
   getDataWriteMode,
   getDataReadSource,
