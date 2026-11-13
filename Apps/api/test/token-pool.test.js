@@ -20,7 +20,7 @@ const {
   TokenPoolRepository,
 } = require('../dist/prisma/repositories/token-pool.repository');
 
-const TOKEN = 'MTAwMDAwMDAwMDAwMDAwMDAw.GaBcDe.0123456789abcdefghijklmnopqrstuvwxyz';
+const POOL_SAMPLE = 'fake-pool-token-0000000000000000';
 
 function fakeClient() {
   const rows = [];
@@ -108,32 +108,32 @@ test('add stores ciphertext, never the plaintext token', async () => {
   const client = fakeClient();
   const repo = new TokenPoolRepository({ client });
 
-  await repo.add('unused', TOKEN);
+  await repo.add('unused', POOL_SAMPLE);
 
   assert.equal(client.rows.length, 1);
-  assert.notEqual(client.rows[0].token, TOKEN);
+  assert.notEqual(client.rows[0].token, POOL_SAMPLE);
   assert.ok(isEncryptedPoolToken(client.rows[0].token));
-  assert.ok(!client.rows[0].token.includes(TOKEN));
-  assert.equal(decryptPoolToken(client.rows[0].token), TOKEN);
+  assert.ok(!client.rows[0].token.includes(POOL_SAMPLE));
+  assert.equal(decryptPoolToken(client.rows[0].token), POOL_SAMPLE);
 });
 
 test('the same token always produces the same row (unique index works)', async () => {
   const client = fakeClient();
   const repo = new TokenPoolRepository({ client });
 
-  await repo.add('unused', TOKEN);
-  await repo.add('unused', TOKEN);
+  await repo.add('unused', POOL_SAMPLE);
+  await repo.add('unused', POOL_SAMPLE);
 
   assert.equal(client.rows.length, 1);
-  assert.equal(decryptPoolToken(client.rows[0].token), TOKEN);
+  assert.equal(decryptPoolToken(client.rows[0].token), POOL_SAMPLE);
 });
 
 test('a different token gets a different stored value', async () => {
   const client = fakeClient();
   const repo = new TokenPoolRepository({ client });
 
-  await repo.add('unused', TOKEN);
-  await repo.add('unused', `${TOKEN}x`);
+  await repo.add('unused', POOL_SAMPLE);
+  await repo.add('unused', `${POOL_SAMPLE}x`);
 
   assert.equal(client.rows.length, 2);
   assert.notEqual(client.rows[0].token, client.rows[1].token);
@@ -143,11 +143,11 @@ test('listTokens and takeOne return plaintext', async () => {
   const client = fakeClient();
   const repo = new TokenPoolRepository({ client });
 
-  await repo.add('unused', TOKEN);
-  assert.deepEqual(await repo.listTokens('unused'), [TOKEN]);
+  await repo.add('unused', POOL_SAMPLE);
+  assert.deepEqual(await repo.listTokens('unused'), [POOL_SAMPLE]);
 
   const taken = await repo.takeOne('unused');
-  assert.equal(taken, TOKEN);
+  assert.equal(taken, POOL_SAMPLE);
   assert.equal(client.rows.length, 0);
 });
 
@@ -155,14 +155,14 @@ test('remove deletes both the encrypted row and a legacy plaintext row', async (
   const client = fakeClient();
   const repo = new TokenPoolRepository({ client });
 
-  await repo.add('unused', TOKEN);
+  await repo.add('unused', POOL_SAMPLE);
   // Simulate a row written before encryption.
   await client.tokenPoolEntry.create({
-    data: { kind: 'unused', token: TOKEN },
+    data: { kind: 'unused', token: POOL_SAMPLE },
   });
   assert.equal(client.rows.length, 2);
 
-  await repo.remove('unused', TOKEN);
+  await repo.remove('unused', POOL_SAMPLE);
   assert.equal(client.rows.length, 0);
 });
 
@@ -171,9 +171,9 @@ test('add heals a leftover plaintext row instead of duplicating it', async () =>
   const repo = new TokenPoolRepository({ client });
 
   await client.tokenPoolEntry.create({
-    data: { kind: 'unused', token: TOKEN },
+    data: { kind: 'unused', token: POOL_SAMPLE },
   });
-  await repo.add('unused', TOKEN);
+  await repo.add('unused', POOL_SAMPLE);
 
   assert.equal(client.rows.length, 1);
   assert.ok(isEncryptedPoolToken(client.rows[0].token));
@@ -183,11 +183,11 @@ test('replaceAll rewrites the pool encrypted', async () => {
   const client = fakeClient();
   const repo = new TokenPoolRepository({ client });
 
-  await repo.replaceAll('working', [TOKEN, `${TOKEN}y`]);
+  await repo.replaceAll('working', [POOL_SAMPLE, `${POOL_SAMPLE}y`]);
 
   assert.equal(client.rows.length, 2);
   assert.ok(client.rows.every((r) => isEncryptedPoolToken(r.token)));
-  assert.deepEqual(await repo.listTokens('working'), [TOKEN, `${TOKEN}y`]);
+  assert.deepEqual(await repo.listTokens('working'), [POOL_SAMPLE, `${POOL_SAMPLE}y`]);
 });
 
 test('legacy plaintext rows stay readable before the migration runs', async () => {
@@ -195,8 +195,8 @@ test('legacy plaintext rows stay readable before the migration runs', async () =
   const repo = new TokenPoolRepository({ client });
 
   await client.tokenPoolEntry.create({
-    data: { kind: 'unused', token: TOKEN },
+    data: { kind: 'unused', token: POOL_SAMPLE },
   });
 
-  assert.deepEqual(await repo.listTokens('unused'), [TOKEN]);
+  assert.deepEqual(await repo.listTokens('unused'), [POOL_SAMPLE]);
 });
