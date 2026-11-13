@@ -15,7 +15,8 @@ const parseMoment = (value) => {
     return moment(value, ['YYYY-M-D HH:mm:ss', 'YYYY-MM-DD HH:mm:ss', 'YYYY-M-D H:mm:ss', 'YYYY-MM-DD H:mm:ss'], true);
 };
 const CoinsDB = new Database("/Database/Backups/Coins.json");
-const archiver = require('archiver');
+// archiver 8 is ESM-first: the default export is gone, so grab the class.
+const { ZipArchive } = require('archiver');
 const rundb = new Database("./Database/BotMaker/RunBots.json");
 const Makers = new Database("./Database/Others/BotMakerTokens.json");
 
@@ -263,7 +264,7 @@ every("subscription-check", 30_000, async () => {
                     const zipFileName = `${filePath.name}-${moment().format("YYYY-MM-DD_HH-mm-ss")}.zip`;
                     const zipFilePath = path.join(backupFolder, zipFileName);
                     const output_stream = fs.createWriteStream(zipFilePath);
-                    const archive = archiver("zip", { zlib: { level: 9 } });
+                    const archive = new ZipArchive({ zlib: { level: 9 } });
                     let archiveStatus = "Success";
 
                     output_stream.on("close", () => {

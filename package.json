@@ -51,7 +51,7 @@
   "dependencies": {
     "@discordjs/voice": "^0.19.2",
     "@snazzah/davey": "^0.1.12",
-    "archiver": "^7.0.1",
+    "archiver": "8.0.0",
     "axios": "^1.7.9",
     "body-parser": "1.20.9",
     "canvas": "^3.1.0",

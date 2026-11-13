@@ -2,7 +2,7 @@
   "areas": {
     "Main": {
       "files": 72,
-      "lines": 7763
+      "lines": 7764
     },
     "Maker": {
       "files": 313,
@@ -25,8 +25,8 @@
       "lines": 2849
     },
     "scripts": {
-      "files": 14,
-      "lines": 1884
+      "files": 13,
+      "lines": 1798
     }
   },
   "coupling": {
