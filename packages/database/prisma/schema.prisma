@@ -1,0 +1,459 @@
+// Phase 1: BotInstance / Runtime / Apply / Jobs
+// Phase 2+: FeatureRecord / PlatformRecord / BotBalance / Prefix / Prices / Commands
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BotType {
+  Apply
+  Azkar
+  Muslim
+  Autoline
+  Feedback
+  Giveaway
+  Log
+  Offer
+  Package
+  Protection
+  Selfrole
+  Stock
+  Suggestion
+  System
+  Tax
+  Ticket
+  TempRole
+  TempVoice
+}
+
+enum Language {
+  Ar
+  En
+}
+
+enum ApplyPanelStatus {
+  on
+  off
+}
+
+enum JobKind {
+  CREATE_PANEL
+  UPDATE_PANEL
+  DELETE_PANEL
+  APPLY_ACTION
+  DASHBOARD_LOG
+}
+
+enum JobStatus {
+  pending
+  processing
+  done
+  failed
+}
+
+enum ApplicationStatus {
+  pending
+  accepted
+  rejected
+}
+
+/// Subscription / customer bot instance (replaces Tokens.json Bots[])
+model BotInstance {
+  id            String    @id @default(cuid())
+  clientId      String    @unique
+  /// AES-256-GCM ciphertext (base64): iv:tag:payload
+  tokenEnc      String
+  ownerId       String
+  buyerId       String?
+  sellerId      String?
+  botNumber     Int?
+  type          BotType
+  guildId       String?
+  serverId      String?
+  servers       String[]  @default([])
+  price         Float?
+  node          Int?
+  purchasesId   Int?
+  tokenType     String?
+  dashboardSlug String?   @unique
+  startsAt      DateTime?
+  endsAt        DateTime?
+  language      Language  @default(Ar)
+  /// Extra flags (e.g. warnedBefore) from legacy Tokens.json
+  meta          Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  runtime            BotRuntime?
+  applyGuildSettings ApplyGuildSettings[]
+  applyPanels        ApplyPanel[]
+  applyApplications  ApplyApplication[]
+  jobs               BotJob[]
+
+  @@index([ownerId])
+  @@index([type])
+  @@index([endsAt])
+  @@map("bot_instances")
+}
+
+/// Online/offline flags (replaces RunBots.json)
+model BotRuntime {
+  clientId  String      @id
+  running   Boolean     @default(false)
+  updatedAt DateTime    @updatedAt
+  bot       BotInstance @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+
+  @@map("bot_runtimes")
+}
+
+/// Per-guild Apply settings (applyAdmin_*, dm_Mode_*, resultsLog_*)
+model ApplyGuildSettings {
+  id            String   @id @default(cuid())
+  botClientId   String
+  guildId       String
+  adminRoleId   String?
+  logsChannelId String?
+  dmAccept      String   @default("off")
+  dmReject      String   @default("off")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  bot BotInstance @relation(fields: [botClientId], references: [clientId], onDelete: Cascade)
+
+  @@unique([botClientId, guildId])
+  @@index([botClientId])
+  @@map("apply_guild_settings")
+}
+
+/// Apply panel message config (appData_*, applectionStatus_*)
+model ApplyPanel {
+  id          String           @id @default(cuid())
+  botClientId String
+  messageId   String
+  channelId   String?
+  guildId     String?
+  message     String           @default("") @db.Text
+  status      ApplyPanelStatus @default(on)
+  /// Structured questions array (+ legacy ask1..ask5 mirrored in JSON when needed)
+  questions   Json             @default("[]")
+  legacyAsks  Json?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  bot        BotInstance           @relation(fields: [botClientId], references: [clientId], onDelete: Cascade)
+  applicants ApplyPanelApplicant[]
+
+  @@unique([botClientId, messageId])
+  @@index([botClientId])
+  @@map("apply_panels")
+}
+
+model ApplyPanelApplicant {
+  id        String   @id @default(cuid())
+  panelId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  panel ApplyPanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
+
+  @@unique([panelId, userId])
+  @@index([userId])
+  @@map("apply_panel_applicants")
+}
+
+/// Pending / reviewed applications (Pending_Applications_*)
+model ApplyApplication {
+  id             String            @id @default(cuid())
+  botClientId    String
+  panelMessageId String?
+  userId         String
+  status         ApplicationStatus @default(pending)
+  answers        Json              @default("{}")
+  meta           Json?
+  discordRefs    Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  reviewedAt     DateTime?
+
+  bot BotInstance @relation(fields: [botClientId], references: [clientId], onDelete: Cascade)
+
+  @@index([botClientId, status])
+  @@index([userId])
+  @@map("apply_applications")
+}
+
+/// Dashboard → Discord job queues (Create_Applection_*, Dashboard_*, …)
+model BotJob {
+  id          String    @id @default(cuid())
+  botClientId String
+  kind        JobKind
+  status      JobStatus @default(pending)
+  payload     Json      @default("{}")
+  error       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  processedAt DateTime?
+
+  bot BotInstance @relation(fields: [botClientId], references: [clientId], onDelete: Cascade)
+
+  @@index([botClientId, status])
+  @@index([status, kind])
+  @@map("bot_jobs")
+}
+
+// ─── Phase 2+: remaining Maker + platform data ─────────────────────────────
+
+/// Generic KV for Maker feature JSON (ticket, protection, giveaway, tax, …)
+model FeatureRecord {
+  id          String   @id @default(cuid())
+  /// e.g. ticket | protection | giveaway | tax | autoline | …
+  namespace   String
+  /// Original flat st.db key
+  key         String
+  botClientId String?
+  guildId     String?
+  value       Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([namespace, key])
+  @@index([namespace, botClientId])
+  @@index([namespace])
+  @@map("feature_records")
+}
+
+/// Platform / Database/* leftovers not modeled elsewhere
+model PlatformRecord {
+  id        String   @id @default(cuid())
+  namespace String
+  key       String
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([namespace, key])
+  @@index([namespace])
+  @@map("platform_records")
+}
+
+/// Replaces Mongo Balance (Main marketplace economy)
+model BotBalance {
+  id           String   @id @default(cuid())
+  userId       String
+  guildId      String
+  /// BIGINT — marketplace balances can exceed Int32 (~2.1e9)
+  coins        BigInt   @default(0)
+  balance      BigInt   @default(0)
+  purchaseDate DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, guildId])
+  @@index([guildId, balance])
+  @@map("bot_balances")
+}
+
+model BotPrefix {
+  clientId  String   @id
+  prefix    String   @default("#")
+  updatedAt DateTime @updatedAt
+
+  @@map("bot_prefixes")
+}
+
+model GuildBotPrice {
+  id        String   @id @default(cuid())
+  guildId   String
+  priceKey  String
+  price     Float
+  updatedAt DateTime @updatedAt
+
+  @@unique([guildId, priceKey])
+  @@index([guildId])
+  @@map("guild_bot_prices")
+}
+
+model BotCommandConfig {
+  id        String   @id @default(cuid())
+  clientId  String   @unique
+  commands  Json     @default("[]")
+  updatedAt DateTime @updatedAt
+
+  @@map("bot_command_configs")
+}
+
+/// Replaces Mongo Schema/Blacklist
+model UserBlacklist {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  reason    String
+  adminId   String
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([expiresAt])
+  @@map("user_blacklists")
+}
+
+/// Replaces Database/Dashboard/Access.json
+model DashboardAccess {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  clientId    String   @unique
+  type        String
+  ownerId     String?
+  guildId     String?
+  purchasesId String?
+  meta        Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ownerId])
+  @@map("dashboard_access")
+}
+
+enum TokenPoolKind {
+  unused
+  working
+  non_working
+  error
+  expired
+  botmaker
+  expiring
+}
+
+/// Token inventory pools (UnusedTokens, ErrTokens, WorkingTokens, …)
+model TokenPoolEntry {
+  id        String        @id @default(cuid())
+  kind      TokenPoolKind
+  /// Raw Discord bot token (or encrypted blob if TOKEN_POOL_ENCRYPT=1)
+  token     String
+  clientId  String?
+  meta      Json?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([kind, token])
+  @@index([kind])
+  @@index([clientId])
+  @@map("token_pool_entries")
+}
+
+/// Dashboard apply audit trail (replaces Mongo ApplyAudit)
+model ApplyAuditLog {
+  id        String   @id @default(cuid())
+  botId     String
+  action    String
+  category  String
+  payload   Json     @default("{}")
+  actor     String
+  createdAt DateTime @default(now())
+
+  @@index([botId, createdAt])
+  @@index([botId, category])
+  @@map("apply_audit_logs")
+}
+
+/// Per-guild member XP for System leveling (guild-scoped, never global)
+model GuildMemberXp {
+  id            String    @id @default(cuid())
+  botClientId   String
+  guildId       String
+  userId        String
+  /// BIGINT — progressive curves exceed Int32 even at modest levels
+  xp            BigInt    @default(0)
+  level         Int       @default(0)
+  lastMessageAt DateTime?
+  lastVoiceAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([botClientId, guildId, userId])
+  @@index([botClientId, guildId, xp(sort: Desc)])
+  @@index([botClientId, guildId, level(sort: Desc)])
+  @@index([botClientId, userId])
+  @@map("guild_member_xp")
+}
+
+/// Daily guild activity counters for System Overview charts
+model GuildDailyStat {
+  id          String   @id @default(cuid())
+  botClientId String
+  guildId     String
+  /// UTC calendar day
+  day         DateTime @db.Date
+  messages    Int      @default(0)
+  joins       Int      @default(0)
+  leaves      Int      @default(0)
+  /// Last known member count snapshot for that day
+  memberCount Int?
+  updatedAt   DateTime @updatedAt
+
+  @@unique([botClientId, guildId, day])
+  @@index([botClientId, day])
+  @@map("guild_daily_stats")
+}
+
+enum PartnerOrderStatus {
+  pending
+  fulfilled
+  failed
+}
+
+enum PartnerTokenSource {
+  customer
+  pool
+}
+
+/// External shop / partner API credentials
+model PartnerApiKey {
+  id         String   @id @default(cuid())
+  /// Public key id sent as X-Maker-Key-Id
+  keyId      String   @unique
+  /// SHA-256 hex of the secret (audit / lookup)
+  secretHash String
+  /// AES-GCM ciphertext of the HMAC secret (recoverable for signature verify)
+  secretEnc  String
+  name       String
+  scopes     String[] @default(["catalog:read", "orders:read", "orders:write"])
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  orders PartnerOrder[]
+
+  @@index([enabled])
+  @@map("partner_api_keys")
+}
+
+/// Idempotent external purchase → bot + dashboard provision
+model PartnerOrder {
+  id              String             @id @default(cuid())
+  partnerKeyId    String
+  externalOrderId String
+  ownerDiscordId  String
+  botType         BotType
+  clientId        String?
+  tokenSource     PartnerTokenSource
+  status          PartnerOrderStatus @default(pending)
+  dashboardSlug   String?
+  durationDays    Int                @default(30)
+  errorMessage    String?
+  meta            Json?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  partner PartnerApiKey @relation(fields: [partnerKeyId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerKeyId, externalOrderId])
+  @@index([externalOrderId])
+  @@index([clientId])
+  @@index([status])
+  @@map("partner_orders")
+}

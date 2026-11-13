@@ -1,0 +1,33 @@
+{
+	"Systems": {
+        "UserRoles": true
+					},
+    "Enabled": {
+        "member-banned": true,
+        "timeout": true,
+        "channel-created": false,
+        "thread-created": true,
+        "role-created": true,
+        "channel-deleted": true,
+        "thread-deleted": true,
+        "message-deleted": true,
+        "role-deleted": true,
+        "message-edited": true,
+        "member-kicked": true,
+        "member-disconnected": true,
+        "member-joined": true,
+        "member-left": true,
+        "nickname-changed": true,
+        "role-given": true,
+        "role-removed": true,
+        "member-unbanned": true,
+        "channel-updated": true,
+        "thread-updated": true,
+        "channel-prems-updated": true,
+        "role-updated": true,
+        "member-joined-channel": true,
+        "member-left-channel": true,
+        "voice-state": true
+    }
+
+}

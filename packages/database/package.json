@@ -1,0 +1,36 @@
+{
+  "name": "@maker/database",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "import:phase1": "tsx scripts/import-phase1.ts",
+    "import:phase1:dry": "tsx scripts/import-phase1.ts --dry-run",
+    "import:phase2": "tsx scripts/import-phase2.ts",
+    "import:phase2:dry": "tsx scripts/import-phase2.ts --dry-run",
+    "import:balances": "tsx scripts/import-balances-mongo.ts",
+    "import:blacklist": "tsx scripts/import-blacklist.ts",
+    "import:phase3": "tsx scripts/import-phase3.ts",
+    "import:phase3:dry": "tsx scripts/import-phase3.ts --dry-run",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.5.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.5.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.2"
+  }
+}

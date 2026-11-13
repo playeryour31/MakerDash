@@ -1,0 +1,380 @@
+{
+    "change-avatar": {
+        "description": "Bans a member.",
+        "aliases": "[commands]",
+        "usage": "/ban [user] (time m/h/d/mo/y) (reason)",
+        "examples": "/ban [author].\n/ban [author]. spamming\n/ban [author]. 1h spamming\n/ban [author]. 1d spamming\n/ban [author]. 1w"
+    },
+    "ban": {
+        "description": "Bans a member.",
+        "aliases": "[commands]",
+        "usage": "/ban [user] (time m/h/d/mo/y) (reason)",
+        "examples": "/ban [author].\n/ban [author]. spamming\n/ban [author]. 1h spamming\n/ban [author]. 1d spamming\n/ban [author]. 1w"
+    },
+    "unban": {
+        "description": "Unbans a member.",
+        "aliases": "[commands]",
+        "usage": "/unban [user]",
+        "examples": "/unban [author]\n/unban [author.id]"
+    },
+    "kick": {
+        "description": "Kicks a member.",
+        "aliases": "[commands]",
+        "usage": "/kick [user] (reason)",
+        "examples": "/kick [author]\n/kick [author.id]"
+    },
+    "mute": {
+        "description": "Mute a member from text/voice channels so they cannot type.",
+        "aliases": "[commands]",
+        "usage": "/mute [user] (time ends with m,h,d,mo,y) (reason)",
+        "examples": "/mute [author] 1m Spamming\n/mute [author] 1h\n/mute [author] 1d\n/mute [author] 1w\n/mute [author] 1mo\n/mute [author] 1y"
+    },
+    "unmute": {
+        "description": "Unmutes a member.",
+        "aliases": "[commands]",
+        "usage": "/unmute [user]",
+        "examples": "/unmute [author]\n/unmute [author.id]"
+    },
+    "timeout": {
+        "description": "Timeout a user from sending messages, react or join voice channels.",
+        "aliases": "[commands]",
+        "usage": "/timeout [user]\n/timeout [user] (time)\n/timeout [user] (reason)",
+        "examples": "/timeout [author]\n/timeout [author] 1h\n/timeout [author] Spamming"
+    },
+    "untimeout": {
+        "description": "Remove timeout from a user",
+        "aliases": "[commands]",
+        "usage": "/untimeout [user]",
+        "examples": "/untimeout [author]\n/untimeout [author.id]"
+    },
+    "clear": {
+        "description": "Cleans messages from a channel.",
+        "aliases": "[commands]",
+        "usage": "/clear (number of messages)\n/clear bots (number of messages)\n/clear [user] (number of messages)",
+        "examples": "/clear 1000\n/clear bots 10\n/clear [author] 10"
+    },
+    "role": {
+        "description": "Add/remove a role(s) for a user.",
+        "aliases": "[commands]",
+        "usage": "/role [user] (+/-)[roles names separated by space]\n/role all (+/-)[role name]",
+        "examples": "/role [author] Admin\n/role all members\n/role bots System\n/role humans members"
+    },
+    "role-multiple": {
+        "description": "Add/remove multiple role(s).",
+        "aliases": "[commands]",
+        "usage": "/role (type) (role)",
+        "examples": "/role bots Admin"
+    },
+    "lock": {
+        "description": "Disables @everyone from sending messages in specific channel.",
+        "aliases": "[commands]",
+        "usage": "/lock (channel) (reason)",
+        "examples": "/lock\n/lock #general\n/lock #general Spamming"
+    },
+    "unlock": {
+        "description": "Allows @everyone to send messages in specific channel.",
+        "aliases": "[commands]",
+        "usage": "/unlock (channel)",
+        "examples": "/unlock\n/unlock #general"
+    },
+    "hide": {
+        "description": "Disables @everyone from viewing specific channel.",
+        "aliases": "[commands]",
+        "usage": "/hide (channel) (reason)",
+        "examples": "/hide\n/hide #general\n/hide #general Spamming"
+    },
+    "unhide": {
+        "description": "Allows @everyone to view specific channel.",
+        "aliases": "[commands]",
+        "usage": "/unhide (channel)",
+        "examples": "/unhide\n/unhide #general"
+    },
+    "avatar": {
+        "description": "Display your avatar or someone else's avatar.",
+        "aliases": "[commands]",
+        "usage": "/avatar (user)",
+        "examples": "/avatar [author]\n/avatar [author.id]"
+    },
+    "banner": {
+        "description": "Display your banner or someone else's avatar.",
+        "aliases": "[commands]",
+        "usage": "/banner (user)",
+        "examples": "/banner [author]\n/banner [author.id]"
+    },
+    "roles": {
+        "description": "Get a list of server roles.",
+        "aliases": "[commands]",
+        "usage": "/roles",
+        "examples": "/roles"
+    },
+    "server": {
+        "description": "Display information about the server.",
+        "aliases": "[commands]",
+        "usage": "/server",
+        "examples": "/server"
+    },
+    "user": {
+        "description": "Display information about the user.",
+        "aliases": "[commands]",
+        "usage": "/user (user)",
+        "examples": "/user [author]\n/user [author.id]"
+    },
+    "say": {
+        "description": "Send a specific message to a specific channel.",
+        "aliases": "[commands]",
+        "usage": "/say (channel) (message)",
+        "examples": "/say #news Helle"
+    },
+    "embed": {
+        "description": "Send a specific embed message to a specific channel.",
+        "aliases": "[commands]",
+        "usage": "/embed (channel) (message)",
+        "examples": "/embed #news Helle"
+    },
+    "send": {
+        "description": "Send a specific message to a specific member.",
+        "aliases": "[commands]",
+        "usage": "/send (user) (message)",
+        "examples": "/send [author] Helle\n/send [author.id] Helle"
+    },
+    "come": {
+        "description": "request someone to come to the channel.",
+        "aliases": "[commands]",
+        "usage": "/come (user)",
+        "examples": "/come [author]"
+    },
+    "dm-mode": {
+        "description": "Set DM messages mode on apply accept or reject.",
+        "aliases": "[commands]",
+        "usage": "/dm-mode (accept/reject) (ON/OFF)",
+        "examples": "/dm-mode accept on\n/dm-mode reject on\n/dm-mode accept off\n/dm-mode reject off"
+    },
+    "new-application": {
+        "description": "Create new apply application.",
+        "aliases": "[commands]",
+        "usage": "/new-application (role) (application_channel) (requests_channel)",
+        "examples": "/new-application @role #apply-channel #requests-channel"
+    },
+    "set-results": {
+        "description": "Set applie's results channel.",
+        "aliases": "[commands]",
+        "usage": "/set-results (results_channel)",
+        "examples": "/set-results #general"
+    },
+    "apply-admin": {
+        "description": "Set pecific role of submissions admin.",
+        "aliases": "[commands]",
+        "usage": "/apply-admin (role)",
+        "examples": "/apply-admin @admin"
+    },
+    "apply-status": {
+        "description": "Enable/Disable apps from the application.",
+        "aliases": "[commands]",
+        "usage": "/apply-status (application_ID) (ON/OFF)",
+        "examples": "/apply-status 123456789123 ON\n/apply-status 123456789123 OFF"
+    },
+    "add-autoline": {
+        "description": "Add new channel to autoline system.",
+        "aliases": "[commands]",
+        "usage": "/add-autoline (channel)",
+        "examples": "/add-autoline #news"
+    },
+    "line": {
+        "description": "Send your server's line.",
+        "aliases": "[commands]",
+        "usage": "line",
+        "examples": "line"
+    },
+    "remove-autoline": {
+        "description": "Remove channel from autoline system.",
+        "aliases": "[commands]",
+        "usage": "/remove-autoline (channel)",
+        "examples": "/remove-autoline #news"
+    },
+    "set-line": {
+        "description": "Set/Change your server's line image.",
+        "aliases": "[commands]",
+        "usage": "/set-line (image_URL)",
+        "examples": "/set-line https://media.discordapp.net/attachments/line"
+    },
+    "add-feedback": {
+        "description": "Add new channel to feedback system.",
+        "aliases": "[commands]",
+        "usage": "/add-feedback (channel)",
+        "examples": "/add-feedback #views"
+    },
+    "set-feedbackemoji": {
+        "description": "Change feedback's emoji.",
+        "aliases": "[commands]",
+        "usage": "/set-feedbackemoji (EMOJI)",
+        "examples": "/set-feedbackemoji ⭐"
+    },
+    "remove-feedback": {
+        "description": "Remove channel from feedback system.",
+        "aliases": "[commands]",
+        "usage": "/remove-feedback (channel)",
+        "examples": "/remove-feedback #views"
+    },
+    "set-feedbackline": {
+        "description": "Set/Remove feedback's line image.",
+        "aliases": "[commands]",
+        "usage": "/set-feedbackline (image_URL)",
+        "examples": "/set-feedbackline https://media.discordapp.net/attachments/line\n/set-feedbackline"
+    },
+    "add-suggestion": {
+        "description": "Add new channel to suggestion system.",
+        "aliases": "[commands]",
+        "usage": "/add-suggestion (channel)",
+        "examples": "/add-suggestion #suggestion"
+    },
+    "remove-suggestion": {
+        "description": "Remove channel from suggestion system.",
+        "aliases": "[commands]",
+        "usage": "/remove-suggestion (channel)",
+        "examples": "/remove-suggestion #suggestion"
+    },
+    "set-suggestionline": {
+        "description": "Set/Remove suggestion's line image.",
+        "aliases": "[commands]",
+        "usage": "/set-suggestionline (image_URL)",
+        "examples": "/set-suggestionline https://media.discordapp.net/attachments/line\n/set-suggestionline"
+    },
+    "add-tax": {
+        "description": "Add new channel to tax system.",
+        "aliases": "[commands]",
+        "usage": "/add-tax (channel)",
+        "examples": "/add-tax #tax"
+    },
+    "remove-tax": {
+        "description": "Remove channel from tax system.",
+        "aliases": "[commands]",
+        "usage": "/remove-tax (channel)",
+        "examples": "/remove-tax #tax"
+    },
+    "set-taxline": {
+        "description": "Set/Remove tax's line image.",
+        "aliases": "[commands]",
+        "usage": "/set-taxline (image_URL)",
+        "examples": "/set-taxline https://media.discordapp.net/attachments/line\n/set-taxline"
+    },
+    "tax": {
+        "description": "Get the tax.",
+        "aliases": "[commands]",
+        "usage": "/set-taxline (NUMBER)",
+        "examples": "/tax 10000\n/tax 10k"
+    },
+    "gend": {
+        "description": "Ends running giveaway.",
+        "aliases": "[commands]",
+        "usage": "/gend (giveaway_id)",
+        "examples": "/gend 123456789"
+    },
+    "greroll": {
+        "description": "Reroll new winners for giveaway.",
+        "aliases": "[commands]",
+        "usage": "/greroll (giveaway_id) (winners)",
+        "examples": "/greroll 123456789 2"
+    },
+    "gstart": {
+        "description": "Create new giveaway.",
+        "aliases": "[commands]",
+        "usage": "/gstart (duration) (winners) (prize)",
+        "examples": "/gstart 1h 5 test."
+    },
+    "log-setup": {
+        "description": "Setup logging event.",
+        "aliases": "[commands]",
+        "usage": "/log-setup",
+        "examples": "/log-setup."
+    },
+    "add-whitelist": {
+        "description": "Add user to action bypass.",
+        "aliases": "[commands]",
+        "usage": "/add-whitelist (user) (action)",
+        "examples": "/add-whitelist [author.id] bans\n/add-whitelist [author.id] kick."
+    },
+    "remove-whitelist": {
+        "description": "Remove user from action bypass.",
+        "aliases": "[commands]",
+        "usage": "/remove-whitelist (user) (action)",
+        "examples": "/remove-whitelist [author.id] bans\n/remove-whitelist [author.id] kick."
+    },
+    "anti-bots": {
+        "description": "Enable/Disable bots join protection.",
+        "aliases": "[commands]",
+        "usage": "/anti-bots (status)",
+        "examples": "/anti-bots on\n/anti-bots off."
+    },
+    "actions-limit": {
+        "description": "Put limit for action.",
+        "aliases": "[commands]",
+        "usage": "/actions-limit (action) (limit)",
+        "examples": "/actions-limit bans 3\n/actions-limit kick 3."
+    },
+    "set-automode": {
+        "description": "Determine the anti-overflow actions.",
+        "aliases": "[commands]",
+        "usage": "/set-automode (action) (automode)",
+        "examples": "/set-automode bans kick\n/set-automode delete_roles ban."
+    },
+    "set-log": {
+        "description": "Set/Change protection logging channel.",
+        "aliases": "[commands]",
+        "usage": "/set-log (channel)",
+        "examples": "/set-log #protection-log"
+    },
+    "selfrole-setup": {
+        "description": "Setup new selfrole system.",
+        "aliases": "[commands]",
+        "usage": "/selfrole-setup",
+        "examples": "/selfrole-setup"
+    },
+    "selfrole-manage": {
+        "description": "Manage selfrole panel.",
+        "aliases": "[commands]",
+        "usage": "/selfrole-manage",
+        "examples": "/selfrole-manage"
+    },
+    "ticket-setup": {
+        "description": "Setup new ticket system.",
+        "aliases": "[commands]",
+        "usage": "/ticket-setup",
+        "examples": "/ticket-setup"
+    },
+    "ticket-manage": {
+        "description": "Manage ticket panel.",
+        "aliases": "[commands]",
+        "usage": "/ticket-manage",
+        "examples": "/ticket-manage"
+    },
+    "transcript-setup": {
+        "description": "Set/Change transcript channel.",
+        "aliases": "[commands]",
+        "usage": "/transcript-setup (channel)",
+        "examples": "/transcript-setup #transcript"
+    },
+    "add": {
+        "description": "Add member to ticket.",
+        "aliases": "[commands]",
+        "usage": "/add (user)",
+        "examples": "/add [author]\n/add [author.id]"
+    },
+    "remove": {
+        "description": "Remove member from ticket.",
+        "aliases": "[commands]",
+        "usage": "/remove (user)",
+        "examples": "/remove [author]\n/remove [author.id]"
+    },
+    "rename": {
+        "description": "Rename the ticket channel.",
+        "aliases": "[commands]",
+        "usage": "/rename (name)",
+        "examples": "/rename ticket-0010"
+    },
+	"inrole": {
+        "description": "Shows the list of users in a specific role.",
+        "aliases": "[commands]",
+        "usage": "/inrole [role]",
+        "examples": "/inrole Admin\n/inrole Moderator"
+    }
+}

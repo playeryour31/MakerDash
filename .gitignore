@@ -1,0 +1,92 @@
+# ─────────────────────────────────────────────────────────────
+# Dependencies
+# ─────────────────────────────────────────────────────────────
+node_modules/
+**/node_modules/
+
+# ─────────────────────────────────────────────────────────────
+# Secrets & env — never commit. Provision these on the server.
+# ─────────────────────────────────────────────────────────────
+.env
+.env.*
+.env.share
+.env.local
+**/.env
+**/.env.*
+# Keep the examples + the public checklist tracked
+!.env.example
+!**/.env.example
+!.env.production.checklist.md
+!**/.env.production.checklist.md
+
+# Control-bot runtime config (contains live token + Mongo DSN)
+Main/Resources/Config.json
+Maker/Resources/Config.json
+
+# ─────────────────────────────────────────────────────────────
+# Legacy plaintext secret stores (Discord tokens / credentials)
+# Runtime SSOT is PostgreSQL; these JSON files are archives only.
+# ─────────────────────────────────────────────────────────────
+/Database/
+/Maker/Json-Database/
+/Backups/
+/Main/Backups/
+
+# Shell history can leak tokens/passwords
+.bash_history
+.history
+
+# ─────────────────────────────────────────────────────────────
+# Build caches & artifacts
+# ─────────────────────────────────────────────────────────────
+.turbo/
+**/.turbo/
+.next/
+**/.next/
+**/dist/
+**/build/
+**/*.tsbuildinfo
+**/*.js.map
+.npm/
+**/.cache/
+
+# Generated PWA service worker output (re-created by next build)
+Apps/web/public/sw.js
+Apps/web/public/sw.js.map
+Apps/web/public/workbox-*.js
+Apps/web/public/swe-worker-*.js
+Apps/web/public/fallback-*.js
+
+# ─────────────────────────────────────────────────────────────
+# Logs, archives & temp
+# ─────────────────────────────────────────────────────────────
+*.log
+debug.log
+tmp-*
+_tmp_*
+*.tmp
+*.zip
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+.secure-local/
+vault/
+
+# ─────────────────────────────────────────────────────────────
+# IDE / agent tooling
+# ─────────────────────────────────────────────────────────────
+.agents/
+.cursor/
+skills-lock.json
+
+# ─────────────────────────────────────────────────────────────
+# Dev artifacts
+# ─────────────────────────────────────────────────────────────
+Apps/web/.env.local.share-backup
+Apps/web/lighthouse-*.json
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini

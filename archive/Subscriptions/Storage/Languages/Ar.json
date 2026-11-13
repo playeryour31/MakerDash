@@ -1,0 +1,99 @@
+{
+  "Others": {
+    "Reply1": "You cannot use this command.",
+    "Reply2": "Required permissions are not available.",
+    "Reply3": "Unknown command, please try again.",
+    "Reply4": "Correct usage: [COMMAND]",
+    "Reply5": "Please mention a valid member.",
+    "Reply6": "This command is only available to the owner.",
+    "Reply7": "You must provide a valid argument.",
+    "Reply8": "The bot does not have the required permissions.",
+    "Reply9": "An error occurred while executing this command.",
+    "Reply10": "You have a process.",
+    "Reply11": "Please wait while we process your request...",
+    "Reply12": "Unable to send you a private message. Updates will be sent here.",
+    "ReplyCooldown": "Please wait [TIME] seconds before using this interaction again.",
+    "ReplyCooldown1": "Please wait [TIME] seconds before using this command again."
+  },
+  "Owner": {
+    "Reply1": "You must be the owner to perform this action.",
+    "Reply2": "Access denied, this command is for the owner only.",
+    "Reply3": "This action requires owner permissions.",
+    "Reply4": "Only the owner can manage this setting.",
+    "Reply5": "Owner verification failed.",
+    "Reply6": "You are not authorized to use this command.",
+    "Reply7": "The control panel update has been sent successfully.",
+    "Reply8": "You cant add coins now retry later.!",
+    "Reply9": "You can add **[Balance]** coins only for now!",
+    "Reply10": "This bot does not have enough coins!",
+    "Reply11": "Remaining time [DAYS] days and [HOURS] hours"
+
+  },
+  "NotFound": {
+    "Reply1": "Command not found: [COMMAND]."
+  },
+  "Balance": {
+    "Reply1": "You have no balance. Use /buy coins to purchase coins.",
+    "Reply2": "Your current balance: **[Balance]** coins.",
+    "Reply3": "[User]'s current balance: **[Balance]** coins.",
+    "Reply4": "My balance: **[Balance]** coins.",
+    "Reply5": "Buy has been disabled by the admin. Please try again later.",
+    "Reply6": "The bot is not fully setuped."
+  },
+ "BuyCoins": {
+    "Reply1": "You don't have enough balance to complete this transaction.",
+    "Reply2": "Coin purchasing is currently disabled on this server.",
+    "Reply3": "You already have a pending transaction.",
+    "Reply4": "You cannot use this command right now.",
+    "Reply5": "You can only purchase **[Balance]** coins at this moment!",
+    "Reply6": "**[Amount]** coins have been added to your balance!",
+    "Reply7": "**Purchase successful!**\n**[Amount]** coins have been added to your balance!",
+    "Reply8": "An error occurred while updating the bot's balance.",
+    "Reply9": "**Purchase failed!**\n**Time expired without transfer!**",
+    "Reply10": "**Time expired, no transfer detected!** [User]"
+  },
+  "Transfer": {
+    "InsufficientBalance": "You do not have enough balance to complete this operation.",
+    "BotTransfer": "You cannot transfer coins to bots.",
+    "SelfTransfer": "You cannot transfer coins to yourself.",
+    "InvalidAmount": "Invalid amount. Please enter a valid number greater than zero.",
+    "ConfirmTransfer": "Are you sure you want to transfer [Amount] coins to [User]?",
+    "SuccessTransfer": "Successfully transferred [Amount] coins to [User].",
+    "CancelledTransfer": "Transfer has been cancelled."
+  },
+  "AddCoins": {
+    "AddSuccess": "Successfully added [Amount] coins to [User]'s balance.",
+    "InvalidAmount": "Please enter a valid amount greater than 0."
+  },
+  "RemoveCoins": {
+    "RemoveSuccess": "Successfully removed [Amount] coins from [User]'s balance.",
+    "InvalidAmount": "Please enter a valid amount greater than 0."
+  },
+  "Config": {
+    "Reply1": "Bot image updated successfully.",
+    "Reply2": "Bot name updated successfully.",
+    "Reply3": "Bot status updated successfully.",
+    "Reply4": "Set [Type] price to [Price] coins.",
+    "Reply5": "Invalid value entered. Please enter a valid number.",
+    "Reply6": "You do not have the necessary permissions to use this command.",
+    "Reply7": "An error occurred while processing your request.",
+    "Reply8": "Please upload a valid image file.",
+    "Reply9": "The bot's status was previously set to [Status]."
+  },
+  "Codes": {
+    "Reply1": "This code already exists.",
+    "Reply2": "New code created successfully: [Code].",
+    "Reply3": "The code you want to delete does not exist.",
+    "Reply4": "Code [Code] deleted successfully.",
+    "Reply5": "No codes available at the moment.",
+    "Reply6": "Available codes list:",
+    "Reply7": "Bonus: [UserGift] | Current users: [UsersNow] | Max usage: [MaxUse]",
+    "Reply8": "The maximum number of users must be between 2 and 100.",
+    "Reply9": "Redeem has been disabled by the admin. Please try again later.",
+    "Reply10": "There are no available codes.",
+    "Reply11": "Invalid code. Please try again.",
+    "Reply12": "You have already used this code.",
+    "Reply13": "This code has reached its usage limit.",
+    "Reply14": "You have successfully redeemed the code. Your reward: **[Gift]** coins."
+  }
+}

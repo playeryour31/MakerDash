@@ -1,0 +1,42 @@
+# Postgres + Redis for Maker.
+# Ports are bound to 127.0.0.1 only (not exposed to the public internet).
+# Before a public server: change POSTGRES_PASSWORD and update DATABASE_URL in
+# Apps/api/.env and packages/database/.env to match.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: maker-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: maker
+      POSTGRES_PASSWORD: maker
+      POSTGRES_DB: maker
+    volumes:
+      - maker_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maker -d maker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: maker-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - maker_redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  maker_pg_data:
+  maker_redis_data:

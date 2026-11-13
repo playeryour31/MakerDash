@@ -1,0 +1,129 @@
+{
+    "Logs": [
+        {
+            "label": "Member Banned",
+            "value": "member-banned",
+            "description": "Logs when a member gets banned."
+        },
+        {
+            "label": "Timeout",
+            "value": "timeout",
+            "description": "Logs when a member gets timed out."
+        },
+        {
+            "label": "Channel Created",
+            "value": "channel-created",
+            "description": "Logs when a new channel is created."
+        },
+        {
+            "label": "Thread Created",
+            "value": "thread-created",
+            "description": "Logs when a new thread is created."
+        },
+        {
+            "label": "Role Created",
+            "value": "role-created",
+            "description": "Logs when a new role is created."
+        },
+        {
+            "label": "Channel Deleted",
+            "value": "channel-deleted",
+            "description": "Logs when a channel is deleted."
+        },
+        {
+            "label": "Thread Deleted",
+            "value": "thread-deleted",
+            "description": "Logs when a thread is deleted."
+        },
+        {
+            "label": "Message Deleted",
+            "value": "message-deleted",
+            "description": "Logs when a message is deleted."
+        },
+        {
+            "label": "Role Deleted",
+            "value": "role-deleted",
+            "description": "Logs when a role is deleted."
+        },
+        {
+            "label": "Message Edited",
+            "value": "message-edited",
+            "description": "Logs when a message is edited."
+        },
+        {
+            "label": "Member Kicked",
+            "value": "member-kicked",
+            "description": "Logs when a member gets kicked."
+        },
+        {
+            "label": "Member Disconnected",
+            "value": "member-disconnected",
+            "description": "Logs when a member disconnects from voice."
+        },
+        {
+            "label": "Member Joined",
+            "value": "member-joined",
+            "description": "Logs when a member joins the server."
+        },
+        {
+            "label": "Member Left",
+            "value": "member-left",
+            "description": "Logs when a member leaves the server."
+        },
+        {
+            "label": "Nickname Changed",
+            "value": "nickname-changed",
+            "description": "Logs when a member changes their nickname."
+        },
+        {
+            "label": "Role Given",
+            "value": "role-given",
+            "description": "Logs when a role is assigned to a member."
+        },
+        {
+            "label": "Role Removed",
+            "value": "role-removed",
+            "description": "Logs when a role is removed from a member."
+        },
+        {
+            "label": "Member Unbanned",
+            "value": "member-unbanned",
+            "description": "Logs when a member is unbanned."
+        },
+        {
+            "label": "Channel Updated",
+            "value": "channel-updated",
+            "description": "Logs changes to a channel's settings."
+        },
+        {
+            "label": "Thread Updated",
+            "value": "thread-updated",
+            "description": "Logs updates to a thread."
+        },
+        {
+            "label": "Channel Permissions Updated",
+            "value": "channel-prems-updated",
+            "description": "Logs when channel permissions are updated."
+        },
+        {
+            "label": "Role Updated",
+            "value": "role-updated",
+            "description": "Logs when a role's settings are updated."
+        },
+        {
+            "label": "Member Joined Voice Channel",
+            "value": "member-joined-channel",
+            "description": "Logs when a member joins a voice channel."
+        },
+        {
+            "label": "Member Left Voice Channel",
+            "value": "member-left-channel",
+            "description": "Logs when a member leaves a voice channel."
+        },
+        {
+            "label": "Voice State",
+            "value": "voice-state",
+            "description": "Logs changes in member voice activity (mute, deaf, switch)."
+        }
+    ]
+}

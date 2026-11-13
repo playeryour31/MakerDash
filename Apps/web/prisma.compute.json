@@ -1,0 +1,8 @@
+{
+  "app": {
+    "name": "web",
+    "region": "eu-central-1",
+    "framework": "nextjs",
+    "httpPort": 3000
+  }
+}

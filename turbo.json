@@ -1,0 +1,57 @@
+{
+  "$schema": "https://v2-10-9.turborepo.dev/schema.json",
+  "ui": "stream",
+  "envMode": "loose",
+  "globalPassThroughEnv": [
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_APP_URL",
+    "CORS_ORIGIN",
+    "DASHBOARD_PUBLIC_URL",
+    "DISCORD_REDIRECT_URI",
+    "DISCORD_CLIENT_ID",
+    "DISCORD_CLIENT_SECRET",
+    "PORT",
+    "JWT_SECRET",
+    "MONGODB_URI",
+    "MAIN_BOT_TOKEN",
+    "MAIN_LOG_BOT_TOKEN",
+    "MAKER_WEBHOOK_TOKEN",
+    "OPENAI_API_KEY",
+    "TRUST_PROXY",
+    "RATE_LIMIT_API_PER_MIN",
+    "RATE_LIMIT_AUTH_PER_MIN",
+    "RATE_LIMIT_AUTH_SECURITY_PER_MIN",
+    "API_PROXY_BLOCKED_PREFIXES",
+    "MAKER_MANAGER_TICK_MS",
+    "MAKER_RUNTIME_REFRESH_MS",
+    "MAKER_TOKENS_REFRESH_MS",
+    "PROVISION_API_KEY",
+    "BOT_INTERNAL_API_KEY",
+    "MAKER_ROOT",
+    "DATABASE_URL",
+    "BOT_TOKEN_ENCRYPTION_KEY",
+    "DATA_WRITE_MODE",
+    "DATA_READ_SOURCE",
+    "DATA_SHADOW_COMPARE",
+    "DATA_SHADOW_SAMPLE_RATE",
+    "DATA_MISMATCH_LOG_SAMPLE_RATE",
+    "DATA_MISMATCH_ALERT_THRESHOLD",
+    "DATA_MISMATCH_ALERT_WINDOW_MS",
+    "INTERNAL_API_URL",
+    "USE_BOT_DATA_API"
+  ],
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    }
+  }
+}

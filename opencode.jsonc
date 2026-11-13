@@ -1,0 +1,76 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Coarena free Model API — OpenAI-compatible endpoint.
+  // The API key stays outside the repository in:
+  //   ~/.config/opencode/coarena.key
+  // (You can also provide it as COARENA_API_KEY and swap in {env:COARENA_API_KEY}.)
+  "model": "coarena/claude-sonnet-5-5",
+
+  "providers": {
+    "coarena": {
+      "name": "Coarena",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "https://coarena.ai/api/v1",
+        "apiKey": "{file:~/.config/opencode/coarena.key}",
+      },
+      "models": {
+        "claude-sonnet-5-5": {
+          "name": "Claude Sonnet 5.5 (Coarena)",
+          "limit": { "context": 128000, "output": 16384 },
+          "capabilities": {
+            "tools": true,
+            "input": ["text", "image"],
+            "output": ["text"],
+          },
+        },
+        "claude-opus-5-5": {
+          "name": "Claude Opus 5.5 (Coarena)",
+          "limit": { "context": 128000, "output": 16384 },
+          "capabilities": {
+            "tools": true,
+            "input": ["text", "image"],
+            "output": ["text"],
+          },
+        },
+        "claude-haiku-5-5": {
+          "name": "Claude Haiku 5.5 (Coarena)",
+          "limit": { "context": 128000, "output": 16384 },
+          "capabilities": {
+            "tools": true,
+            "input": ["text", "image"],
+            "output": ["text"],
+          },
+        },
+        "gemini-4-carbon": {
+          "name": "Gemini 4 Carbon (Coarena)",
+          "limit": { "context": 128000, "output": 16384 },
+          "capabilities": {
+            "tools": true,
+            "input": ["text", "image"],
+            "output": ["text"],
+          },
+        },
+        "deepseek-v4-1-flash-1017": {
+          "name": "DeepSeek V4.1 Flash (Coarena)",
+          "limit": { "context": 128000, "output": 16384 },
+          "capabilities": {
+            "tools": true,
+            "input": ["text", "image"],
+            "output": ["text"],
+          },
+        },
+        "grok-4-7": {
+          "name": "Grok 4.7 (Coarena)",
+          "limit": { "context": 128000, "output": 16384 },
+          "capabilities": {
+            "tools": true,
+            "input": ["text", "image"],
+            "output": ["text"],
+          },
+        },
+      },
+    },
+  },
+}

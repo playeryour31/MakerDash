@@ -1,0 +1,83 @@
+{
+    "Autoline": [
+        "add-autoline",
+        "remove-autoline",
+        "line",
+        "set-line"
+    ],
+    "Suggestion": [
+        "add-suggestion",
+        "remove-suggestion",
+        "set-suggestionline"
+    ],
+    "Tax": [
+        "add-tax",
+        "remove-tax",
+        "set-taxline",
+        "tax"
+    ],
+    "Feedback": [
+        "add-feedback",
+        "remove-feedback",
+        "set-feedbackline",
+        "set-feedbackemoji"
+    ],
+    "Giveaway": [
+        "gstart",
+        "greroll",
+        "gend"
+    ],
+    "Log": [
+        "log-setup"
+    ],
+    "Protection": [
+        "add-whitelist",
+        "remove-whitelist",
+        "anti-bots",
+        "actions-limit",
+        "set-automode",
+        "set-log"
+    ],
+    "Selfrole": [
+        "selfrole-setup"
+    ],
+    "Ticket": [
+        "add",
+        "remove",
+        "rename"
+    ],
+    "System": [
+        "ban",
+        "clear",
+        "kick",
+        "lock",
+        "mute",
+        "role",
+        "timeout",
+        "unban",
+        "unlock",
+        "unmute",
+        "untimeout",
+        "hide",
+        "unhide",
+        "say",
+        "embed",
+        "send",
+        "come",
+        "avatar",
+        "banner",
+        "roles",
+        "server",
+        "user"
+    ],
+    "Apply": [
+        "new-application",
+        "set-results",
+        "apply-admin",
+        "apply-status",
+        "dm-mode"
+    ]
+
+
+
+}

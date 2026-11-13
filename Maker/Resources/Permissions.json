@@ -1,0 +1,92 @@
+{
+  "Permissions": [
+     {
+      "label": "Administrator",
+      "value": "Administrator"
+    },
+    {
+      "label": "View Channels",
+      "value": "ViewChannel"
+    },
+    {
+      "label": "Send Messages",
+      "value": "SendMessages"
+    },
+    {
+      "label": "Embed Links",
+      "value": "EmbedLinks"
+    },
+    {
+      "label": "Attach Files",
+      "value": "AttachFiles"
+    },
+    {
+      "label": "Read Message History",
+      "value": "ReadMessageHistory"
+    },
+    {
+      "label": "Send Messages in Threads",
+      "value": "SendMessagesInThreads"
+    },
+    {
+      "label": "Manage Messages",
+      "value": "ManageMessages"
+    },
+    {
+      "label": "Kick Members",
+      "value": "KickMembers"
+    },
+    {
+      "label": "Ban Members",
+      "value": "BanMembers"
+    },
+    {
+      "label": "Manage Channels",
+      "value": "ManageChannels"
+    },
+    {
+      "label": "Manage Roles",
+      "value": "ManageRoles"
+    },
+    {
+      "label": "Manage Server",
+      "value": "ManageGuild"
+    },
+    {
+      "label": "Priority Speaker",
+      "value": "PrioritySpeaker"
+    },
+    {
+      "label": "Manage Emojis and Stickers",
+      "value": "ManageEmojisAndStickers"
+    },
+    {
+      "label": "Manage Webhooks",
+      "value": "ManageWebhooks"
+    },
+    {
+      "label": "Manage Events",
+      "value": "ManageEvents"
+    },
+    {
+      "label": "View Audit Log",
+      "value": "ViewAuditLog"
+    },
+    {
+      "label": "Moderate Members",
+      "value": "ModerateMembers"
+    },
+    {
+      "label": "Manage Guild Expressions",
+      "value": "ManageGuildExpressions"
+    },
+    {
+      "label": "Manage Nicknames",
+      "value": "ManageNicknames"
+    },
+    {
+      "label": "Change Nickname",
+      "value": "ChangeNickname"
+    }
+  ]
+}

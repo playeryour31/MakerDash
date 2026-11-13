@@ -1,0 +1,716 @@
+{
+    "Logs_1309143630790791258_1214618576606990336": [
+        {
+            "User": "1072299633419763722",
+            "ID": 1,
+            "Amount": 1,
+            "Credits": 10,
+            "Action": "Buy Coins",
+            "Time": "2025-03-22 18:01"
+        },
+        {
+            "User": "1072299633419763722",
+            "ID": 2,
+            "Amount": 1,
+            "Credits": 10,
+            "Action": "Buy Coins",
+            "Time": "2025-03-22 18:02"
+        },
+        {
+            "User": "1072299633419763722",
+            "ID": 3,
+            "Amount": 1,
+            "Credits": 10,
+            "Action": "Buy Coins",
+            "Time": "2025-03-22 18:09"
+        },
+        {
+            "User": "1072299633419763722",
+            "ID": 4,
+            "Amount": 995,
+            "Credits": 9950,
+            "Action": "Buy Coins",
+            "Time": "2025-03-22 18:20"
+        }
+    ],
+    "Logs_1309134871993782282_1182981796615422032": [
+        {
+            "User": "1319427348994719824",
+            "ID": 1,
+            "Amount": 10,
+            "Credits": 1000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-23 22:17"
+        },
+        {
+            "User": "930924322023940137",
+            "ID": 2,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-23 22:29"
+        },
+        {
+            "User": "1208135040614273105",
+            "ID": 3,
+            "Amount": 50,
+            "Credits": 5000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-24 00:19"
+        },
+        {
+            "User": "1169563014517760041",
+            "ID": 4,
+            "Amount": 10,
+            "Credits": 1000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-24 04:03"
+        },
+        {
+            "User": "1144939923720372224",
+            "ID": 5,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-24 17:43"
+        },
+        {
+            "User": "342964904040333314",
+            "ID": 6,
+            "Amount": 50,
+            "Credits": 5000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-25 18:03"
+        },
+        {
+            "User": "765624148192919573",
+            "ID": 7,
+            "Amount": 50,
+            "Credits": 5000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-25 18:18"
+        },
+        {
+            "User": "1130173676478804040",
+            "ID": 8,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-25 20:02"
+        },
+        {
+            "User": "1074388393141743816",
+            "ID": 9,
+            "Amount": 70,
+            "Credits": 7000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-26 01:08"
+        },
+        {
+            "User": "1074388393141743816",
+            "ID": 10,
+            "Amount": 20,
+            "Credits": 2000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-26 08:01"
+        },
+        {
+            "User": "926438227722768394",
+            "ID": 11,
+            "Amount": 10,
+            "Credits": 1000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-26 13:15"
+        },
+        {
+            "User": "1142781100368867328",
+            "ID": 12,
+            "Amount": 10,
+            "Credits": 1000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-26 15:23"
+        },
+        {
+            "User": "760844227848044615",
+            "ID": 13,
+            "Amount": 1,
+            "Credits": 100000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-26 15:23"
+        },
+        {
+            "User": "760844227848044615",
+            "ID": 14,
+            "Amount": 30,
+            "Credits": 3000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-26 15:44"
+        },
+        {
+            "User": "1292237915832979496",
+            "ID": 15,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-26 16:32"
+        },
+        {
+            "User": "877321047286886460",
+            "ID": 16,
+            "Amount": 100,
+            "Credits": 10000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-26 18:36"
+        },
+        {
+            "User": "1193234105224151080",
+            "ID": 17,
+            "Amount": 10,
+            "Credits": 1000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-26 22:50"
+        },
+        {
+            "User": "1272272061380952227",
+            "ID": 18,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-27 01:04"
+        },
+        {
+            "User": "1292237915832979496",
+            "ID": 19,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-27 01:19"
+        },
+        {
+            "User": "1221771145464909878",
+            "ID": 20,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-28 00:58"
+        },
+        {
+            "User": "1221771145464909878",
+            "ID": 21,
+            "Amount": 15,
+            "Credits": 1500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-28 02:43"
+        },
+        {
+            "User": "1177833411700863050",
+            "ID": 22,
+            "Amount": 3,
+            "Credits": 300000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-28 05:59"
+        },
+        {
+            "User": "1191746835795165270",
+            "ID": 23,
+            "Amount": 12,
+            "Credits": 1200000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-28 17:47"
+        },
+        {
+            "User": "395310391053254658",
+            "ID": 24,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-29 00:28"
+        },
+        {
+            "User": "395310391053254658",
+            "ID": 25,
+            "Amount": 20,
+            "Credits": 2000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-29 00:35"
+        },
+        {
+            "User": "1070448871626506291",
+            "ID": 26,
+            "Amount": 100,
+            "Credits": 10000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-31 02:42"
+        },
+        {
+            "User": "1003056100381315132",
+            "ID": 27,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-31 08:59"
+        },
+        {
+            "User": "1003056100381315132",
+            "ID": 28,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-31 08:59"
+        },
+        {
+            "User": "991967108739117106",
+            "ID": 29,
+            "Amount": 20,
+            "Credits": 2000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-31 15:41"
+        },
+        {
+            "User": "1011356962476273754",
+            "ID": 30,
+            "Amount": 50,
+            "Credits": 5000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-02 02:13"
+        },
+        {
+            "User": "930924322023940137",
+            "ID": 31,
+            "Amount": 10,
+            "Credits": 1000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-02 23:43"
+        },
+        {
+            "User": "760944784952262657",
+            "ID": 32,
+            "Amount": 50,
+            "Credits": 5000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-10 08:15"
+        },
+        {
+            "User": "760944784952262657",
+            "ID": 33,
+            "Amount": 30,
+            "Credits": 3000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-10 08:23"
+        },
+        {
+            "User": "1233433974009757706",
+            "ID": 34,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-10 08:50"
+        },
+        {
+            "User": "1130680054532296735",
+            "ID": 35,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-11 12:48"
+        },
+        {
+            "User": "991967108739117106",
+            "ID": 36,
+            "Amount": 40,
+            "Credits": 4000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-11 13:32"
+        },
+        {
+            "User": "1142781100368867328",
+            "ID": 37,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-11 14:58"
+        }
+    ],
+    "Logs_1309142146338521170_1304581864010551326": [
+        {
+            "User": "896060031219413033",
+            "ID": 1,
+            "Amount": 50,
+            "Credits": 2500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-28 07:45"
+        },
+        {
+            "User": "896060031219413033",
+            "ID": 2,
+            "Amount": 50,
+            "Credits": 2500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-28 13:59"
+        },
+        {
+            "User": "896060031219413033",
+            "ID": 3,
+            "Amount": 6,
+            "Credits": 300000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-28 14:00"
+        },
+        {
+            "User": "994276363085303818",
+            "ID": 4,
+            "Amount": 9,
+            "Credits": 450000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-29 23:05"
+        },
+        {
+            "User": "822573134028734464",
+            "ID": 5,
+            "Amount": 7,
+            "Credits": 350000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-30 01:55"
+        },
+        {
+            "User": "907934072075087872",
+            "ID": 6,
+            "Amount": 1,
+            "Credits": 50000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-30 11:04"
+        },
+        {
+            "User": "907934072075087872",
+            "ID": 7,
+            "Amount": 1,
+            "Credits": 50000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-30 11:06"
+        },
+        {
+            "User": "907934072075087872",
+            "ID": 8,
+            "Amount": 2,
+            "Credits": 100000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-30 11:33"
+        },
+        {
+            "User": "1110627517997531236",
+            "ID": 9,
+            "Amount": 7,
+            "Credits": 350000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-30 13:12"
+        },
+        {
+            "User": "1110627517997531236",
+            "ID": 10,
+            "Amount": 7,
+            "Credits": 350000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-30 13:19"
+        },
+        {
+            "User": "907934072075087872",
+            "ID": 11,
+            "Amount": 4,
+            "Credits": 400000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-30 18:48"
+        },
+        {
+            "User": "1202564589510983680",
+            "ID": 12,
+            "Amount": 10,
+            "Credits": 1000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-31 12:30"
+        },
+        {
+            "User": "967460429767004160",
+            "ID": 13,
+            "Amount": 3,
+            "Credits": 300000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-01 20:01"
+        },
+        {
+            "User": "967460429767004160",
+            "ID": 14,
+            "Amount": 4,
+            "Credits": 400000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-01 23:35"
+        },
+        {
+            "User": "931651476722421790",
+            "ID": 15,
+            "Amount": 2,
+            "Credits": 200000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-02 04:29"
+        },
+        {
+            "User": "1157724727297716304",
+            "ID": 16,
+            "Amount": 4,
+            "Credits": 400000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-02 07:29"
+        },
+        {
+            "User": "1157724727297716304",
+            "ID": 17,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-02 08:45"
+        },
+        {
+            "User": "649325802466574336",
+            "ID": 18,
+            "Amount": 3,
+            "Credits": 300000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-02 21:59"
+        },
+        {
+            "User": "649325802466574336",
+            "ID": 19,
+            "Amount": 3,
+            "Credits": 300000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-02 22:12"
+        },
+        {
+            "User": "649325802466574336",
+            "ID": 20,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-02 22:21"
+        },
+        {
+            "User": "1328100436238012416",
+            "ID": 21,
+            "Amount": 60,
+            "Credits": 6000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-10 23:21"
+        },
+        {
+            "User": "1076111692305551390",
+            "ID": 22,
+            "Amount": 70,
+            "Credits": 7000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-11 12:57"
+        },
+        {
+            "User": "1148989896627851354",
+            "ID": 23,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-11 15:50"
+        },
+        {
+            "User": "1157724727297716304",
+            "ID": 24,
+            "Amount": 15,
+            "Credits": 1500000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-11 15:54"
+        },
+        {
+            "User": "852909832662286357",
+            "ID": 25,
+            "Amount": 3,
+            "Credits": 450000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-11 22:27"
+        },
+        {
+            "User": "325904609103183872",
+            "ID": 26,
+            "Amount": 20,
+            "Credits": 3000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 00:59"
+        },
+        {
+            "User": "1279140621436850177",
+            "ID": 27,
+            "Amount": 4,
+            "Credits": 600000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 02:47"
+        },
+        {
+            "User": "1279140621436850177",
+            "ID": 28,
+            "Amount": 4,
+            "Credits": 600000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 02:54"
+        },
+        {
+            "User": "1279140621436850177",
+            "ID": 29,
+            "Amount": 4,
+            "Credits": 600000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 03:00"
+        },
+        {
+            "User": "1279140621436850177",
+            "ID": 30,
+            "Amount": 3,
+            "Credits": 450000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 03:03"
+        },
+        {
+            "User": "852909832662286357",
+            "ID": 31,
+            "Amount": 2,
+            "Credits": 300000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 03:41"
+        },
+        {
+            "User": "852909832662286357",
+            "ID": 32,
+            "Amount": 2,
+            "Credits": 300000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 03:54"
+        },
+        {
+            "User": "1347677687673524306",
+            "ID": 33,
+            "Amount": 2,
+            "Credits": 300000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 11:01"
+        },
+        {
+            "User": "1347677687673524306",
+            "ID": 34,
+            "Amount": 3,
+            "Credits": 450000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 11:04"
+        },
+        {
+            "User": "1347677687673524306",
+            "ID": 35,
+            "Amount": 5,
+            "Credits": 750000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 11:20"
+        },
+        {
+            "User": "1279140621436850177",
+            "ID": 36,
+            "Amount": 4,
+            "Credits": 600000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 11:23"
+        },
+        {
+            "User": "935929282910367774",
+            "ID": 37,
+            "Amount": 1,
+            "Credits": 150000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 15:25"
+        },
+        {
+            "User": "935929282910367774",
+            "ID": 38,
+            "Amount": 20,
+            "Credits": 3000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 15:25"
+        },
+        {
+            "User": "935929282910367774",
+            "ID": 39,
+            "Amount": 20,
+            "Credits": 3000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 16:07"
+        }
+    ],
+    "Logs_1309142576732962938_1241355616350638170": [
+        {
+            "User": "1262497703024267435",
+            "ID": 1,
+            "Amount": 50,
+            "Credits": 5000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-29 16:29"
+        },
+        {
+            "User": "827395893316550677",
+            "ID": 2,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-29 19:21"
+        },
+        {
+            "User": "1167798063419625493",
+            "ID": 3,
+            "Amount": 20,
+            "Credits": 2000000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-30 20:13"
+        },
+        {
+            "User": "861030927689056286",
+            "ID": 4,
+            "Amount": 5,
+            "Credits": 500000,
+            "Action": "Buy Coins",
+            "Time": "2025-03-30 23:16"
+        },
+        {
+            "User": "996105651279364096",
+            "ID": 5,
+            "Amount": 50,
+            "Credits": 1250000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-03 02:43"
+        },
+        {
+            "User": "996105651279364096",
+            "ID": 6,
+            "Amount": 50,
+            "Credits": 1250000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-03 03:03"
+        },
+        {
+            "User": "1153333937066737685",
+            "ID": 7,
+            "Amount": 50,
+            "Credits": 1250000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 15:51"
+        }
+    ],
+    "Logs_1357123405517684816_1354837756718743794": [
+        {
+            "User": "1326038631529578526",
+            "ID": 1,
+            "Amount": 3,
+            "Credits": 15000000,
+            "Action": "Buy Coins",
+            "Time": "2025-04-12 04:55"
+        }
+    ]
+}

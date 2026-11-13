@@ -1,0 +1,165 @@
+{
+  "Apply": {
+    "type": "Apply",
+    "priceKey": "ApplyP",
+    "name": "التقديمات",
+    "descriptionSmall": "بوت لتنظيم تقدميات الأعضاء لرتب معينه داخل الخادم.",
+    "descriptionLarge": "بوت لتنظيم تقدميات الأعضاء في الخادم الخاص بك على رتب معيّنة، مع واجهة تحكم مميزة لإدارة التقديمات والتحكم بالمستخدمين بسهولة.",
+    "emoji": "<:Apply:1393357984004046908>",
+    "purchaseStatus": true
+  },
+  "Muslim": {
+    "type": "Muslim",
+    "priceKey": "AzkarP",
+    "name": "مسلم",
+    "descriptionSmall": "بوت شامل: أذكار تلقائية وقارئ قرآن عبر القنوات الصوتية.",
+    "descriptionLarge": "بوت مسلم شامل لسيرفرك: أذكار ونشر تلقائي، ومصحف، وقارئ قرآن صوتي عبر القنوات الصوتية مع اختيار القارئ ومستوى الصوت وإيقاف التشغيل بسهولة.",
+    "emoji": "<:Azkar:1393365383532253344>",
+    "purchaseStatus": true
+  },
+  "Azkar": {
+    "type": "Muslim",
+    "priceKey": "AzkarP",
+    "name": "مسلم",
+    "descriptionSmall": "بوت شامل: أذكار تلقائية وقارئ قرآن عبر القنوات الصوتية.",
+    "descriptionLarge": "بوت مسلم شامل لسيرفرك: أذكار ونشر تلقائي، ومصحف، وقارئ قرآن صوتي عبر القنوات الصوتية مع اختيار القارئ ومستوى الصوت وإيقاف التشغيل بسهولة.",
+    "emoji": "<:Azkar:1393365383532253344>",
+    "purchaseStatus": false
+  },
+  "Autoline": {
+    "type": "Autoline",
+    "priceKey": "AutolineP",
+    "name": "الخط التلقائي",
+    "descriptionSmall": "بوت لإرسال صور تلقائيًا داخل قنوات محددة.",
+    "descriptionLarge": "بوت يقوم تلقائيًا بإرسال صور مخصصة داخل قنوات يتم تحديدها من قِبل الإدارة عند إرسال الأعضاء رسائل فيها، بالإضافة إلى أمر يدوي لإرسال الخط في أي وقت.",
+    "emoji": "<:AutoLine:1393409706545905795>",
+    "purchaseStatus": true
+  },
+  "Feedback": {
+    "type": "Feedback",
+    "priceKey": "FeedbackP",
+    "name": "الاقتراحات",
+    "descriptionSmall": "بوت ذكي لجمع آراء وملاحظات المستخدمين.",
+    "descriptionLarge": "يجمع الملاحظات من المستخدمين ويرسلها إلى الإدارة أو قنوات معينة للمراجعة، مما يسهل عملية المتابعة والرد.",
+    "emoji": "<:Feedback:1393405130140815360>",
+    "purchaseStatus": true
+  },
+  "Giveaway": {
+    "type": "Giveaway",
+    "priceKey": "GiveawayP",
+    "name": "القيف أوي",
+    "descriptionSmall": "بوت لعمل قيف أوي مخصص مع تحكم كامل.",
+    "descriptionLarge": "قم بتحديد جائزة لفائز واحد أو عدة فائزين مع إمكانية تخصيص كل شيء داخل رسالة القيف أوي، بما في ذلك شكل الرسالة. يدعم أوامر لإعادة اختيار الفائز مرة أو عدة مرات، ويمكنك أيضًا تعيين رتبة معينة يمكنها استخدام القيف أوي.",
+    "emoji": "<:Giveaway:1393409463343648940>",
+    "purchaseStatus": true
+  },
+  "Log": {
+    "type": "Log",
+    "priceKey": "LogP",
+    "name": "اللوق",
+    "descriptionSmall": "بوت لحفظ وتوثيق تغييرات الخادم.",
+    "descriptionLarge": "بوت يقوم بتسجيل جميع التغييرات التي يتم تحديدها من قِبل المسؤول، وإرسالها إلى قناة خاصة مخصصة للّوق، مع توثيق التفاعلات المهمة داخل الخادم لضمان المراقبة والتنظيم الكامل.",
+    "emoji": "<:Logger:1393419921983279234>",
+    "purchaseStatus": true
+  },
+  "Offer": {
+    "type": "Offer",
+    "priceKey": "OfferP",
+    "name": "العروض",
+    "descriptionSmall": "بوت لإدارة العروض مع نظام تذاكر.",
+    "descriptionLarge": "يعرض العروض الحصرية للأعضاء ويتيح لك إنشاء وتتبع وتنظيم مختلف العروض الترويجية بكل سهولة وفتح تذكرة للشخص مع صاحب العرض.",
+    "emoji": "<:Offer:1393421132048236586>",
+    "purchaseStatus": true
+  },
+  "Package": {
+    "type": "Package",
+    "priceKey": "PackageP",
+    "name": "الكل في واحد",
+    "descriptionSmall": "باقة شاملة من البوتات الأساسية.",
+    "descriptionLarge": "تتضمن مجموعة من البوتات الضرورية لإدارة الخادم بشكل فعال وسهل.",
+    "emoji": "<:Package:1393420471852335115>",
+    "purchaseStatus": true
+  },
+  "Protection": {
+    "type": "Protection",
+    "priceKey": "ProtectionP",
+    "name": "الحماية",
+    "descriptionSmall": "أمّن خادمك بأفضل بوت للحماية.",
+    "descriptionLarge": "يوفر حماية من المخترقين والمتطفلين عبر تطبيق بروتوكولات أمان صارمة ومراقبة الأنشطة.",
+    "emoji": "<:Protection:1393404019107696821>",
+    "purchaseStatus": true
+  },
+  "Selfrole": {
+    "type": "Selfrole",
+    "priceKey": "SelfroleP",
+    "name": "الرول الذاتي",
+    "descriptionSmall": "يمنح الأعضاء أدوارًا بنقرة واحدة.",
+    "descriptionLarge": "مفيد في الخوادم التي تحتوي على مجموعات اهتمامات مختلفة، ويسهل إدارة الأدوار بدون تدخل من المشرفين.",
+    "emoji": "<:SelfRole:1393409598886776954>",
+    "purchaseStatus": true
+  },
+  "Stock": {
+    "type": "Stock",
+    "priceKey": "StockP",
+    "name": "بيع المنتجات",
+    "descriptionSmall": "قم ببيع وإدارة المنتجات بكل سهولة.",
+    "descriptionLarge": "نظام متكامل لبيع المنتجات داخل الخادم، مع خيارات تسعير مرنة وإدارة للمخزون. مثالي لبيع الحسابات أو الأكواد أو الخدمات الرقمية بطريقة منظمة وآلية.",
+    "emoji": "<:Stock:1393403253328449556>",
+    "purchaseStatus": true
+  },
+  "Suggestion": {
+    "type": "Suggestion",
+    "priceKey": "SuggestionP",
+    "name": "الاقتراحات",
+    "descriptionSmall": "يساعدك في جمع ومراجعة اقتراحات المستخدمين.",
+    "descriptionLarge": "مثالي للخوادم التي تعتمد على اقتراحات الأعضاء لتحسين الخدمات، مع نظام مرن وسهل للتغذية الراجعة.",
+    "emoji": "<:Request:1393365882654167050>",
+    "purchaseStatus": true
+  },
+  "System": {
+    "type": "System",
+    "priceKey": "SystemP",
+    "name": "السيستم",
+    "descriptionSmall": "بوت إداري شامل للأوامر الإدارية.",
+    "descriptionLarge": "سواء كنت بحاجة لأتمتة مهام الإشراف أو تنظيم الأدوار، يوفر هذا البوت مجموعة ميزات قوية للمساعدة في تسهيل عملية التحكم للمسوؤلين",
+    "emoji": "<:System:1393406074249285683>",
+    "purchaseStatus": true
+  },
+  "Tax": {
+    "type": "Tax",
+    "priceKey": "TaxP",
+    "name": "الضريبة",
+    "descriptionSmall": "يحسب الضرائب على المعاملات.",
+    "descriptionLarge": "مصمم خصيصًا لمستخدمي __Probot__، ساعدك على حساب الضرائب",
+    "emoji": "<:Tax:1393409771909943297>",
+    "purchaseStatus": true
+  },
+  "Ticket": {
+    "type": "Ticket",
+    "priceKey": "TicketP",
+    "name": "التذاكر",
+    "descriptionSmall": "بوت مخصص لإدارة طلبات الدعم.",
+    "descriptionLarge": "يتيح للمستخدمين فتح تذاكر للدعم أو الاستفسارات، مع واجهة قابلة للتخصيص لتنظيم الردود وحل المشاكل بسهولة وامكانية تحديد جميع انواع الاشياء داخل الخادم وايقاف وفتح اي زر.",
+    "emoji": "<:Ticket:1393409660568211548>",
+    "purchaseStatus": true
+  },
+  "TempRole": {
+    "type": "TempRole",
+    "priceKey": "TempRoleP",
+    "name": "الرتب المؤقتة",
+    "descriptionSmall": "يمنح الأعضاء أدوارًا مؤقتة لفترة محددة.",
+    "descriptionLarge": "مثالي للأدوار قصيرة المدى أو الفعاليات، حيث تنتهي صلاحية الدور تلقائيًا بعد الوقت المحدد.",
+    "emoji": "<:TempRole:1393411009124896809>",
+    "purchaseStatus": true
+  },
+  "TempVoice": {
+    "type": "TempVoice",
+    "priceKey": "TempVoiceP",
+    "name": "الرومات الصوتية",
+    "descriptionSmall": "بوت لإنشاء رومات صوتية خاصة تلقائيًا.",
+    "descriptionLarge": "يتيح للأعضاء إنشاء رومات صوتية خاصة بهم بدون تدخل من المسؤولين، مع إمكانية التحكم الكامل في القناة مثل فتحها أو غلقها، تحديد عدد الأعضاء المسموح لهم بالدخول، والمزيد من الإعدادات المخصصة.",
+    "emoji": "<:Microphone:1393423390420766933>",
+    "purchaseStatus": true
+}
+
+}

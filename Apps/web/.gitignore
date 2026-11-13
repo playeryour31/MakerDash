@@ -1,0 +1,14 @@
+.next/
+out/
+node_modules/
+.lighthouse-chrome/
+lighthouse-*.json
+
+# PWA build artifacts
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/swe-worker-*.js
+public/fallback-*.js
+.prisma/
