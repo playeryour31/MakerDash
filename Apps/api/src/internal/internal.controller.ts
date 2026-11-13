@@ -18,6 +18,7 @@ import { DataConsistencyService } from '../prisma/data-consistency.service';
 import { FeatureRepository } from '../prisma/repositories/feature.repository';
 import { PlatformRepository } from '../prisma/repositories/platform.repository';
 import { DashboardAccessService } from '../dashboard/dashboard-access.service';
+import { PrismaService } from '../prisma/prisma.service';
 import {
   shouldReadPostgres,
   shouldShadowCompare,
@@ -38,13 +39,16 @@ export class InternalController {
     private readonly features: FeatureRepository,
     private readonly platform: PlatformRepository,
     private readonly access: DashboardAccessService,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Get('health')
-  health() {
+  async health() {
     const metrics = this.consistency.getMetrics();
+    const dbReady = await this.prisma.isReady();
     return {
-      ok: true,
+      ok: dbReady,
+      db: dbReady ? 'up' : 'down',
       read: process.env.DATA_READ_SOURCE || 'json',
       write: process.env.DATA_WRITE_MODE || 'dual',
       shadowCompare: shouldShadowCompare(),

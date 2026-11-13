@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { ApiError, api, clearToken, getToken } from '@/lib/api';
+import { ApiError, api, clearToken, hasSession } from '@/lib/api';
 
 export type SecurityMethod = 'email' | 'totp' | 'backup';
 
@@ -45,7 +45,7 @@ function useClientToken() {
   const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
-    setHasToken(Boolean(getToken()));
+    setHasToken(hasSession());
     setReady(true);
   }, []);
 

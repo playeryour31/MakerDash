@@ -5,5 +5,10 @@
   "scripts": {
     "dev": "node ../../scripts/run-bot.js",
     "start": "node ../../scripts/run-bot.js"
+  },
+  "dependencies": {
+    "@maker/database": "^1.0.0",
+    "@maker/queue": "^1.0.0",
+    "@maker/subscriptions": "^1.0.0"
   }
 }

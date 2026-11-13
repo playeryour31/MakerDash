@@ -3,7 +3,7 @@
 import { useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { ApiError, api, clearToken, getToken } from '@/lib/api';
+import { ApiError, api, clearToken, hasSession } from '@/lib/api';
 import type { AccessInfo, BotOverview } from '@/lib/botTypes';
 
 async function fetchOverview(botId: string) {
@@ -20,10 +20,12 @@ async function fetchAccess(botId: string) {
 
 export function useBotOverview(botId: string | undefined) {
   const router = useRouter();
-  const ready = Boolean(botId && typeof window !== 'undefined' && getToken());
+  const ready = Boolean(
+    botId && typeof window !== 'undefined' && hasSession(),
+  );
 
   useEffect(() => {
-    if (!getToken()) {
+    if (!hasSession()) {
       router.replace('/');
     }
   }, [router]);

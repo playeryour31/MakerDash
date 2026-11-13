@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutGrid, LogOut, UserRound } from 'lucide-react';
 import BrandMark from './BrandMark';
-import { ApiError, api, clearToken, getToken } from '@/lib/api';
+import { ApiError, api, clearToken, hasSession } from '@/lib/api';
 
 type Me = {
   id: string;
@@ -22,7 +22,7 @@ export default function Sidebar() {
   const [me, setMe] = useState<Me | null>(null);
 
   useEffect(() => {
-    if (!getToken()) return;
+    if (!hasSession()) return;
     let cancelled = false;
     api<Me>('/auth/me')
       .then((user) => {

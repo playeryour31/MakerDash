@@ -3,7 +3,7 @@
 import { FormEvent, Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { KeyRound, Loader2, Mail, ShieldCheck } from 'lucide-react';
-import { ApiError, api, setToken } from '@/lib/api';
+import { ApiError, api, markSession, setToken } from '@/lib/api';
 import AmbientBackground from '@/components/AmbientBackground';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useI18n } from '@/lib/i18n/I18nProvider';
@@ -40,12 +40,31 @@ function CallbackInner() {
       setMethod(methods.length === 1 ? methods[0] : null);
       return;
     }
-    if (!token) {
-      router.replace('/?error=oauth_failed');
+    let cancelled = false;
+    const target = nextParam.startsWith('/') ? nextParam : '/dashboard';
+
+    // Old magic links may still carry ?token=…; new logins arrive with an
+    // HttpOnly session cookie and no token in the URL.
+    if (token) {
+      setToken(token);
+      router.replace(target);
       return;
     }
-    setToken(token);
-    router.replace(nextParam.startsWith('/') ? nextParam : '/dashboard');
+
+    (async () => {
+      try {
+        await api('/auth/me');
+        if (cancelled) return;
+        markSession();
+        router.replace(target);
+      } catch {
+        if (!cancelled) router.replace('/?error=oauth_failed');
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router, token, pending, nextParam, methods]);
 
   async function sendEmailCode() {
@@ -83,18 +102,19 @@ function CallbackInner() {
     setBusy(true);
     setError(null);
     try {
-      const result = await api<{
-        accessToken: string;
-        next?: string;
-      }>('/auth/security/challenge/verify', {
-        method: 'POST',
-        body: JSON.stringify({
-          pendingToken: pending,
-          method,
-          code: code.trim(),
-        }),
-      });
-      setToken(result.accessToken);
+      const result = await api<{ next?: string }>(
+        '/auth/security/challenge/verify',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            pendingToken: pending,
+            method,
+            code: code.trim(),
+          }),
+        },
+      );
+      // The API sets the HttpOnly session cookie on this response.
+      markSession();
       const next =
         result.next && result.next.startsWith('/')
           ? result.next

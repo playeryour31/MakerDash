@@ -78,9 +78,16 @@ function main() {
   const web = pick('Apps/web/.env.local', 'Apps/web/.env.example');
   const nginx = read('deploy/nginx.maker.conf');
 
+  // A fresh clone has no real env files. Falling back to the examples must not
+  // fail the check (they intentionally contain placeholders) — downgrade the
+  // key checks to warnings unless at least one real env file exists.
   const errors = [];
   const warnings = [];
   const rows = [];
+
+  const isExample = (file) => Boolean(file && file.endsWith('.example'));
+  const keysAreExamples = isExample(api.file) && isExample(db.file);
+  const keyFindings = keysAreExamples ? warnings : errors;
 
   // ── ports ────────────────────────────────────────────────────────────────
   const apiPort = Number(api.env.get('PORT')) || DEFAULTS.apiPort;
@@ -126,17 +133,17 @@ function main() {
   const keySources = `${api.file || 'Apps/api/.env'} + ${db.file || 'packages/database/.env'}`;
 
   if (!apiKey || !dbKey) {
-    errors.push(
+    keyFindings.push(
       `BOT_TOKEN_ENCRYPTION_KEY missing (${!apiKey ? api.file || 'Apps/api/.env' : ''}${!apiKey && !dbKey ? ' and ' : ''}${!dbKey ? db.file || 'packages/database/.env' : ''}).`,
     );
   } else {
     if (apiKey.length < MIN_KEY_LENGTH || dbKey.length < MIN_KEY_LENGTH) {
-      errors.push(
+      keyFindings.push(
         `BOT_TOKEN_ENCRYPTION_KEY is too short (${Math.min(apiKey.length, dbKey.length)} < ${MIN_KEY_LENGTH} chars).`,
       );
     }
     if (apiKey !== dbKey) {
-      errors.push(
+      keyFindings.push(
         `BOT_TOKEN_ENCRYPTION_KEY differs between env files (sha ${fingerprint(apiKey)} vs ${fingerprint(dbKey)}).`,
       );
     }
@@ -159,6 +166,11 @@ function main() {
   }
   console.log('');
 
+  if (keysAreExamples) {
+    warnings.push(
+      'Using *.env.example only — copy them to Apps/api/.env, packages/database/.env and Apps/web/.env.local before deploying.',
+    );
+  }
   for (const w of warnings) console.log(`⚠️  ${w}`);
   if (errors.length) {
     for (const e of errors) console.log(`❌ ${e}`);
@@ -168,7 +180,11 @@ function main() {
     process.exitCode = 1;
     return;
   }
-  console.log('✅ ports and token-encryption key are consistent.\n');
+  console.log(
+    keysAreExamples
+      ? '✅ ports are consistent — env files are examples only.\n'
+      : '✅ ports and token-encryption key are consistent.\n',
+  );
 }
 
 try {

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev -p 4084",
     "build": "next build && node scripts/prepare-standalone.js",
     "start": "node scripts/start-standalone.js",
     "analyze": "node scripts/analyze.js",

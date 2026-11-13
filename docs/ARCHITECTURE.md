@@ -43,8 +43,8 @@ Maker/          Customer multi-bot runtime (legacy JS)
 src/shared/     Bridges between legacy JS and Postgres/Redis
 src/shared/runtime/  The process-wide scheduler (single timer)  @shared/runtime
 src/maker/      Bootstrap, client factory, keep-alive
-Database/       Legacy JSON archive (see "Known debt")
-Maker/Json-Database/  Legacy JSON archive (see "Known debt")
+Database/       Legacy JSON archive (git-ignored; present on old servers only)
+Maker/Json-Database/  Legacy JSON archive (git-ignored; present on old servers only)
 archive/        Dead code kept for reference, never required at runtime
 ```
 
@@ -201,7 +201,7 @@ Produced by `npm run metrics`:
 | `createRequire()` in API | 0 | 0 |
 | `requireFromHere()` in API | 0 | 0 |
 | Direct `fs` use in API | 30 | 0 |
-| Legacy JSON on disk | 10.0 MB | 0 |
+| Legacy JSON on disk | 0 MB in git (server-side archives only) | 0 |
 | Largest file | `Maker/Events/ready.js` 1,370 lines | < 400 |
 
 Subscription policy has exactly one implementation: `@maker/subscriptions`.

@@ -13,12 +13,12 @@
       "lines": 5482
     },
     "Apps/api": {
-      "files": 79,
-      "lines": 14935
+      "files": 80,
+      "lines": 15067
     },
     "Apps/web": {
       "files": 168,
-      "lines": 28385
+      "lines": 28437
     },
     "packages": {
       "files": 24,
@@ -26,14 +26,14 @@
     },
     "scripts": {
       "files": 12,
-      "lines": 1627
+      "lines": 1643
     }
   },
   "coupling": {
     "dbConstructorCalls": 300,
     "dbConstructorDistinct": 54,
     "setIntervalCalls": 1,
-    "consoleCalls": 641,
+    "consoleCalls": 640,
     "requireFromHere": 0,
     "createRequire": 0,
     "directFsInApi": 30
@@ -42,16 +42,6 @@
     "total": 1
   },
   "jsonStores": [
-    {
-      "name": "Database",
-      "files": 71,
-      "megabytes": 1.19
-    },
-    {
-      "name": "Maker/Json-Database",
-      "files": 26,
-      "megabytes": 8.78
-    },
     {
       "name": "Subscriptions/Database",
       "files": 9,

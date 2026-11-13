@@ -332,7 +332,9 @@ enum TokenPoolKind {
 model TokenPoolEntry {
   id        String        @id @default(cuid())
   kind      TokenPoolKind
-  /// Raw Discord bot token (or encrypted blob if TOKEN_POOL_ENCRYPT=1)
+  /// Raw Discord bot token. Stored as text: treat the database as a secret
+  /// store (restrict network access, encrypt backups). Encryption at rest is
+  /// handled by the storage volume, not by the application.
   token     String
   clientId  String?
   meta      Json?

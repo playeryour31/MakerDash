@@ -1,8 +1,14 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { prisma, PrismaClient } from '@maker/database';
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger('Prisma');
   readonly client: PrismaClient = prisma;
 
   get botInstance() {
@@ -75,9 +81,20 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.client.$connect();
     } catch (err: any) {
-      console.warn(
-        `[prisma] connect failed — JSON fallback active: ${err?.message || err}`,
-      );
+      const detail = err?.message || String(err);
+      // Prisma reconnects on its own, so the process stays up. Be explicit
+      // about the consequence: in `postgres` read mode there is no JSON
+      // fallback and every DB-backed route will fail until the DB is reachable.
+      const readSource = (
+        process.env.DATA_READ_SOURCE || 'json'
+      ).toLowerCase();
+      if (readSource === 'postgres') {
+        this.logger.error(
+          `cannot reach PostgreSQL (${detail}) — DATA_READ_SOURCE=postgres has no JSON fallback; DB-backed routes will fail until the database is available.`,
+        );
+      } else {
+        this.logger.warn(`connect failed — JSON read mode active: ${detail}`);
+      }
     }
   }
 

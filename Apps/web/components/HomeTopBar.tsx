@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { LogIn } from 'lucide-react';
 import BrandMark from './BrandMark';
 import LanguageSwitcher from './LanguageSwitcher';
-import { discordLoginUrl, getToken } from '@/lib/api';
+import { discordLoginUrl, hasSession } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 
 export default function HomeTopBar() {
@@ -13,7 +13,7 @@ export default function HomeTopBar() {
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
-    setLoggedIn(!!getToken());
+    setLoggedIn(hasSession());
   }, []);
 
   return (

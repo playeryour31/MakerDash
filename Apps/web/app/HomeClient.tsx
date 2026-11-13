@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { LogIn, ShieldCheck } from 'lucide-react';
 import BrandMark from '@/components/BrandMark';
 import HomeTopBar from '@/components/HomeTopBar';
-import { clearToken, discordLoginUrl, getToken } from '@/lib/api';
+import { clearToken, discordLoginUrl, hasSession } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import './home-landing.css';
 
@@ -34,7 +34,7 @@ export default function HomeClient() {
       clearToken();
       return;
     }
-    if (getToken()) router.replace('/dashboard');
+    if (hasSession()) router.replace('/dashboard');
   }, [router, errorKey]);
 
   return (

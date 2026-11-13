@@ -13,8 +13,8 @@ import { assertTokenEncryptionKey } from '@maker/database';
 
 const envDir = path.resolve(__dirname, '..');
 config({ path: path.join(envDir, '.env') });
-// Only when `npm run share` sets MAKER_SHARE=1 — leftover .env.share must NOT
-// override localhost during `npm run start` / `npm run dev`.
+// Only when MAKER_SHARE=1 is exported explicitly — a leftover .env.share must
+// NOT override localhost during `npm run start` / `npm run dev`.
 if (process.env.MAKER_SHARE === '1' || process.env.MAKER_SHARE === 'true') {
   config({ path: path.join(envDir, '.env.share'), override: true });
 }

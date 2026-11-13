@@ -13,6 +13,16 @@ import {
   SecurityMethod,
 } from './account-security.service';
 
+export type DiscordLoginResult = {
+  redirectUrl: string;
+  error?: string;
+  requiresSecurity?: boolean;
+  methods?: SecurityMethod[];
+  /** Set for a completed login; delivered as an HttpOnly cookie, never in the URL. */
+  accessToken?: string;
+  [key: string]: unknown;
+};
+
 type DiscordUser = {
   id: string;
   username: string;
@@ -171,7 +181,10 @@ export class AuthService {
     return (await meRes.json()) as DiscordUser;
   }
 
-  async completeDiscordLogin(code: string, state?: string) {
+  async completeDiscordLogin(
+    code: string,
+    state?: string,
+  ): Promise<DiscordLoginResult> {
     const discordUser = await this.exchangeCode(code);
 
     let next = '/dashboard';
@@ -251,10 +264,9 @@ export class AuthService {
     }
 
     const signed = await this.signSessionToken(discordUser);
-    const params = new URLSearchParams({
-      token: signed.accessToken,
-      next,
-    });
+    // The token is delivered as an HttpOnly cookie by the controller, never in
+    // the URL (browser history, referrers and proxy logs must not see it).
+    const params = new URLSearchParams({ next });
     return {
       redirectUrl: `${this.publicUrl()}/auth/callback?${params.toString()}`,
       ...signed,

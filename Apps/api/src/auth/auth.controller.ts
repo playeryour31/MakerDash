@@ -13,6 +13,10 @@ import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import type { SecurityMethod } from './account-security.service';
+import {
+  clearSessionCookie,
+  setSessionCookie,
+} from './session-cookie';
 
 @Controller('auth')
 export class AuthController {
@@ -53,10 +57,37 @@ export class AuthController {
 
     try {
       const result = await this.auth.completeDiscordLogin(code, state);
+      // Session lives in an HttpOnly cookie; the redirect URL carries no token.
+      if (result.accessToken) setSessionCookie(res, result.accessToken);
       return res.redirect(result.redirectUrl);
     } catch {
       return res.redirect(`${publicUrl}/?error=oauth_failed`);
     }
+  }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    clearSessionCookie(res);
+    return { ok: true };
+  }
+
+  /** Set the session cookie and never leak the JWT in the JSON body. */
+  private async finishSecurityLogin(
+    res: Response,
+    pendingToken: string,
+    method: SecurityMethod,
+    code: string,
+  ) {
+    const result = await this.auth.completeSecurityLogin(
+      pendingToken,
+      method,
+      code,
+    );
+    const { accessToken, ...payload } = result as typeof result & {
+      accessToken?: string;
+    };
+    if (accessToken) setSessionCookie(res, accessToken);
+    return payload;
   }
 
   @Get('me')
@@ -159,12 +190,14 @@ export class AuthController {
       method?: SecurityMethod;
       code?: string;
     },
+    @Res({ passthrough: true }) res: Response,
   ) {
     const method = body?.method;
     if (method !== 'email' && method !== 'totp' && method !== 'backup') {
       throw new BadRequestException('Choose a valid protection method');
     }
-    return this.auth.completeSecurityLogin(
+    return this.finishSecurityLogin(
+      res,
       String(body?.pendingToken || ''),
       method,
       String(body?.code || ''),
@@ -205,12 +238,14 @@ export class AuthController {
   @Post('2fa/verify')
   legacyVerify(
     @Body() body: { pendingToken?: string; code?: string; method?: string },
+    @Res({ passthrough: true }) res: Response,
   ) {
     const method =
       body?.method === 'email' || body?.method === 'backup'
         ? body.method
         : 'totp';
-    return this.auth.completeSecurityLogin(
+    return this.finishSecurityLogin(
+      res,
       String(body?.pendingToken || ''),
       method,
       String(body?.code || ''),

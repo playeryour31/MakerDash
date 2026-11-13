@@ -7,6 +7,11 @@ const API_URL =
       ? process.env.NEXT_PUBLIC_API_URL
       : `${(process.env.INTERNAL_API_ORIGIN || 'http://127.0.0.1:3011').replace(/\/$/, '')}/api`;
 
+/** Legacy storage key: only used by old `?token=` magic links. */
+const LEGACY_TOKEN_KEY = 'apply_token';
+/** Non-sensitive flag: the HttpOnly session cookie exists. */
+const SESSION_MARKER = 'apply_session';
+
 export class ApiError extends Error {
   status: number;
   body: string;
@@ -19,18 +24,47 @@ export class ApiError extends Error {
   }
 }
 
+/** Legacy JWT from localStorage (kept for old links / external clients). */
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('apply_token');
+  return localStorage.getItem(LEGACY_TOKEN_KEY);
 }
 
+/**
+ * True when the browser has a dashboard session.
+ *
+ * The real credential is an HttpOnly cookie the API sets on login, so JS
+ * cannot read it. We keep a non-sensitive marker to avoid an extra request on
+ * every render and to preserve the existing "logged in?" checks.
+ */
+export function hasSession(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (localStorage.getItem(SESSION_MARKER) === '1') return true;
+  return Boolean(getToken());
+}
+
+export function markSession() {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(SESSION_MARKER, '1');
+}
+
+/** Legacy path: store a JWT returned by an old `?token=` link. */
 export function setToken(token: string) {
-  localStorage.setItem('apply_token', token);
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(LEGACY_TOKEN_KEY, token);
+  markSession();
 }
 
 export function clearToken() {
-  localStorage.removeItem('apply_token');
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
+  localStorage.removeItem(SESSION_MARKER);
   clearPersistCache();
+  // Best effort: drop the HttpOnly cookie server-side as well.
+  void fetch(`${API_URL}/auth/logout`, {
+    method: 'POST',
+    credentials: 'same-origin',
+  }).catch(() => undefined);
 }
 
 export function discordLoginUrl(state?: string) {
@@ -51,10 +85,12 @@ export async function api<T = any>(
     'ngrok-skip-browser-warning': '1',
     ...(options.headers as Record<string, string>),
   };
+  // Legacy clients only; browsers authenticate with the session cookie.
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
+    credentials: 'same-origin',
     headers,
   });
 

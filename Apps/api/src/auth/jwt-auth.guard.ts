@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { readSessionCookie } from './session-cookie';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -12,8 +13,10 @@ export class JwtAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest();
-    const header = req.headers.authorization || '';
-    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    const header = String(req.headers.authorization || '');
+    const bearer = header.startsWith('Bearer ') ? header.slice(7) : null;
+    // Cookie first-class; Bearer kept for legacy clients/links.
+    const token = bearer || readSessionCookie(req);
     if (!token) throw new UnauthorizedException('Missing token');
     try {
       const payload = this.jwt.verify(token);

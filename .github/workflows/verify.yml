@@ -62,6 +62,14 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      # Workspace packages expose ./dist via their "types" field, so the API
+      # type check only resolves @maker/* after the packages are built.
+      - name: Build workspace packages
+        run: |
+          npm run build --workspace=@maker/database
+          npm run build --workspace=@maker/queue
+          npm run build --workspace=@maker/subscriptions
+
       - name: Type check
         run: |
           npx tsc -p Apps/api/tsconfig.json --noEmit
