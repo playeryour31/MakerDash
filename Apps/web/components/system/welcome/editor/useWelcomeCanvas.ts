@@ -7,6 +7,7 @@ import {
   type EditorSelection,
   patchTextLayer,
 } from './types';
+import type { FabricModule } from './fabricBridge';
 import {
   bringObject,
   centerObjectOnCanvas,
@@ -195,8 +196,8 @@ export function useWelcomeCanvas({
 
       (async () => {
         try {
-          const mod = await import('fabric');
-          const fabric = (mod as any).fabric || mod;
+          // fabric 6+ has named exports only; the old `mod.fabric` namespace is gone.
+          const fabric = (await import('fabric')) as unknown as FabricModule;
           if (disposed || !hostRef.current) return;
 
           hostRef.current.replaceChildren();

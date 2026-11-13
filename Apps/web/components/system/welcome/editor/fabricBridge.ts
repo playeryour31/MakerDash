@@ -13,7 +13,8 @@ import {
   type FabricKind,
 } from './types';
 
-export type FabricModule = any;
+/** Fabric namespace, typed from the package itself (v6+ exposes named exports). */
+export type FabricModule = typeof import('fabric');
 
 export async function loadAuthBackgroundUrl(
   apiPath: string | null,
@@ -34,17 +35,21 @@ export async function loadAuthBackgroundUrl(
   return URL.createObjectURL(blob);
 }
 
+/** fabric 6+ replaced the callback API with a promise. */
 export function loadFabricImage(fabric: FabricModule, url: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    fabric.Image.fromURL(
-      url,
-      (img: any) => {
-        if (!img) reject(new Error('IMAGE_LOAD'));
-        else resolve(img);
-      },
-      { crossOrigin: 'anonymous' },
-    );
+  return fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
+}
+
+/** Rotation/scale locks plus the matching control handles (v6 dropped hasRotatingPoint). */
+function applyLock(obj: any, locked: boolean) {
+  obj.set({
+    lockRotation: locked,
+    lockMovementX: locked,
+    lockMovementY: locked,
+    lockScalingX: locked,
+    lockScalingY: locked,
   });
+  obj.setControlsVisibility({ mtr: !locked });
 }
 
 export function getObjectById(canvas: any, id: string): any | null {
@@ -116,11 +121,12 @@ export async function setCanvasBackground(
   bgUrl: string | null,
   bgLayout: WelcomeBackgroundLayout,
 ): Promise<{ width: number; height: number }> {
-  canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+  // v6 removed setBackgroundImage/setBackgroundColor/setWidth/setHeight.
+  canvas.backgroundImage = undefined;
   if (!bgUrl) {
-    canvas.setWidth(DEFAULT_LOGICAL_W);
-    canvas.setHeight(DEFAULT_LOGICAL_H);
-    canvas.setBackgroundColor('#0f172a', canvas.renderAll.bind(canvas));
+    canvas.setDimensions({ width: DEFAULT_LOGICAL_W, height: DEFAULT_LOGICAL_H });
+    canvas.backgroundColor = '#0f172a';
+    canvas.requestRenderAll();
     return { width: DEFAULT_LOGICAL_W, height: DEFAULT_LOGICAL_H };
   }
 
@@ -128,9 +134,8 @@ export async function setCanvasBackground(
   const nativeW = bg.width || DEFAULT_LOGICAL_W;
   const nativeH = bg.height || DEFAULT_LOGICAL_H;
   const capped = capLogicalSize(nativeW, nativeH);
-  canvas.setWidth(capped.width);
-  canvas.setHeight(capped.height);
-  canvas.setBackgroundColor('#0a0a10', canvas.renderAll.bind(canvas));
+  canvas.setDimensions({ width: capped.width, height: capped.height });
+  canvas.backgroundColor = '#0a0a10';
 
   const metrics = bgDrawMetrics(
     capped.width,
@@ -139,7 +144,7 @@ export async function setCanvasBackground(
     nativeH,
     bgLayout,
   );
-  canvas.setBackgroundImage(bg, canvas.renderAll.bind(canvas), {
+  bg.set({
     originX: 'left',
     originY: 'top',
     left: metrics.left,
@@ -147,6 +152,9 @@ export async function setCanvasBackground(
     scaleX: metrics.scaleX,
     scaleY: metrics.scaleY,
   });
+  bg.setCoords();
+  canvas.backgroundImage = bg;
+  canvas.requestRenderAll();
   return { width: capped.width, height: capped.height };
 }
 
@@ -178,6 +186,9 @@ export function syncOverlayRect(
   const rect = new fabric.Rect({
     left: 0,
     top: 0,
+    // v7 defaults objects to center origin; the overlay must stay anchored.
+    originX: 'left',
+    originY: 'top',
     width: w,
     height: h,
     fill: overlay?.color || '#000000',
@@ -187,7 +198,7 @@ export function syncOverlayRect(
     data: { id: 'overlay', kind: 'overlay' },
   });
   canvas.add(rect);
-  canvas.sendToBack(rect);
+  canvas.sendObjectToBack(rect);
 }
 
 export function syncAvatarObject(
@@ -218,13 +229,6 @@ export function syncAvatarObject(
     visible: avatar.visible !== false,
     selectable: !locked,
     evented: !locked,
-    hasRotatingPoint: true,
-    lockRotation: locked,
-    lockMovementX: locked,
-    lockMovementY: locked,
-    lockScalingX: locked,
-    lockScalingY: locked,
-    lockUniScaling: true,
     cornerStyle: 'circle',
     cornerColor: '#ffffff',
     borderColor: '#7c3aed',
@@ -233,6 +237,7 @@ export function syncAvatarObject(
     data: { id: AVATAR_ID, kind: 'avatar' as FabricKind },
     name: 'welcome-avatar',
   });
+  applyLock(avatarImg, locked);
   avatarImg.setCoords();
 }
 
@@ -272,7 +277,6 @@ export function syncTextObject(
     top: (h * Number(layer.y || 78)) / 100,
     originX: 'center',
     originY: 'center',
-    textBaseline: 'alphabetic',
     fill: layer.color || '#ffffff',
     fontSize: fontPx,
     scaleX: 1,
@@ -286,12 +290,6 @@ export function syncTextObject(
     selectable: !locked,
     evented: !locked,
     editable: false,
-    hasRotatingPoint: true,
-    lockRotation: locked,
-    lockMovementX: locked,
-    lockMovementY: locked,
-    lockScalingX: locked,
-    lockScalingY: locked,
     cornerStyle: 'circle',
     cornerColor: '#ffffff',
     borderColor: '#7c3aed',
@@ -301,6 +299,7 @@ export function syncTextObject(
     data: { id: layer.id, kind: 'text' as FabricKind },
     name: `welcome-text-${layer.id}`,
   });
+  applyLock(textObj, locked);
   textObj.setCoords();
 }
 
@@ -315,7 +314,6 @@ export function ensureTextObject(
     obj = new fabric.IText(fillWelcomePreview(layer.content), {
       originX: 'center',
       originY: 'center',
-      textBaseline: 'alphabetic',
     });
     canvas.add(obj);
   }
@@ -481,7 +479,8 @@ export function centerObjectOnCanvas(canvas: any, obj: any) {
 
 export function bringObject(canvas: any, obj: any, dir: 'forward' | 'backward') {
   if (!canvas || !obj) return;
-  if (dir === 'forward') canvas.bringForward(obj);
-  else canvas.sendBackwards(obj);
+  // v6 renamed sendToBack/bringForward/sendBackwards to *Object* variants.
+  if (dir === 'forward') canvas.bringObjectForward(obj);
+  else canvas.sendObjectBackwards(obj);
   canvas.requestRenderAll();
 }
