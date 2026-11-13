@@ -71,7 +71,34 @@ function loadAll() {
   });
 }
 
+/**
+ * Prisma Client does not read .env files on its own (only the Prisma CLI does).
+ * Load the same files the API/bot use so `npm run db:import:tokens:apply`
+ * works from a fresh shell without exporting DATABASE_URL manually.
+ */
+function loadEnv() {
+  const files = [
+    path.join(ROOT, '.env'),
+    path.join(ROOT, 'packages', 'database', '.env'),
+    path.join(ROOT, 'Apps', 'api', '.env'),
+  ];
+  try {
+    const dotenv = require('dotenv');
+    for (const file of files) {
+      if (fs.existsSync(file)) dotenv.config({ path: file, quiet: true });
+    }
+  } catch {
+    /* dotenv not installed — rely on the process environment */
+  }
+}
+
 async function applyToDb(pools) {
+  loadEnv();
+  if (!process.env.DATABASE_URL) {
+    throw new Error(
+      'DATABASE_URL is not set. Add it to packages/database/.env or export it before running --apply.',
+    );
+  }
   const { prisma } = require('@maker/database');
   const results = [];
 

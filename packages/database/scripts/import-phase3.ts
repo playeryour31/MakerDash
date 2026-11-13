@@ -6,6 +6,19 @@ import * as path from 'path';
 import { prisma } from '../src/index';
 import type { TokenPoolKind } from '@prisma/client';
 
+// Prisma Client does not load .env by itself; `tsx` does not either.
+for (const rel of ['../../../.env', '../.env', '../../../Apps/api/.env']) {
+  const file = path.resolve(__dirname, rel);
+  try {
+    if (fs.existsSync(file)) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require('dotenv').config({ path: file, quiet: true });
+    }
+  } catch {
+    /* dotenv unavailable — rely on the process environment */
+  }
+}
+
 const dryRun = process.argv.includes('--dry-run');
 const root = path.resolve(__dirname, '../../..');
 
