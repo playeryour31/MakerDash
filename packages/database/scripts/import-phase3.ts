@@ -4,7 +4,7 @@
 import './load-env';
 import * as fs from 'fs';
 import * as path from 'path';
-import { prisma } from '../src/index';
+import { prisma, encryptPoolToken } from '../src/index';
 import type { TokenPoolKind } from '@prisma/client';
 
 const dryRun = process.argv.includes('--dry-run');
@@ -75,9 +75,10 @@ async function importTokenPool(
   console.log(`  ${kind}: ${tokens.length} tokens from ${rel}`);
   if (dryRun || !tokens.length) return tokens.length;
   for (const token of tokens) {
+    const stored = encryptPoolToken(token);
     await prisma.tokenPoolEntry.upsert({
-      where: { kind_token: { kind, token } },
-      create: { kind, token },
+      where: { kind_token: { kind, token: stored } },
+      create: { kind, token: stored },
       update: {},
     });
   }

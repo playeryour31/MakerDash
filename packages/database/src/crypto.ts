@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, scryptSync } from 'crypto';
 
 const ALGO = 'aes-256-gcm';
 const KEY_LEN = 32;
@@ -113,4 +113,79 @@ export function assertTokenEncryptionKey(secret?: string): void {
   if (roundTrip !== probe) {
     throw new Error(`[crypto] ${KEY_ENV} failed a round-trip self-test; refusing to start.`);
   }
+  const poolRoundTrip = decryptPoolToken(encryptPoolToken(probe, secret), secret);
+  if (poolRoundTrip !== probe) {
+    throw new Error(`[crypto] ${KEY_ENV} failed the token-pool self-test; refusing to start.`);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Token-pool entries
+ *
+ * Pool rows are keyed by `@@unique([kind, token])`, so the stored value
+ * must stay a deterministic function of the plaintext: the same token has
+ * to produce the same ciphertext or the unique constraint stops working
+ * and every import would duplicate rows.
+ *
+ * That rules out a random IV. Instead the IV is derived with HMAC from the
+ * plaintext itself (encrypt-then-MAC style key separation), which is safe
+ * for this use: identical plaintexts get an identical IV + ciphertext, and
+ * different plaintexts get unrelated IVs. The usual GCM-IV-reuse hazard
+ * (same IV, different plaintext) cannot happen.
+ *
+ * The trade-off is that the database reveals *equality* of tokens, which
+ * the unique index already revealed. It does not reveal the token itself.
+ * ------------------------------------------------------------------ */
+
+const POOL_PREFIX = 'pool:v1:';
+const POOL_IV_CONTEXT = 'maker-token-pool-iv-v1';
+
+function poolIv(plain: string, key: Buffer): Buffer {
+  return createHmac('sha256', key)
+    .update(POOL_IV_CONTEXT)
+    .update('\0')
+    .update(plain, 'utf8')
+    .digest()
+    .subarray(0, 12);
+}
+
+/** True when a stored value is an encrypted pool token (vs. a legacy plaintext row). */
+export function isEncryptedPoolToken(value: unknown): boolean {
+  return typeof value === 'string' && value.startsWith(POOL_PREFIX);
+}
+
+/**
+ * Encrypt a pool token deterministically. Already-encrypted values pass through,
+ * so the function is safe to call on data that was migrated twice.
+ */
+export function encryptPoolToken(plain: string, secret?: string): string {
+  const value = String(plain);
+  if (isEncryptedPoolToken(value)) return value;
+  const key = resolveKey(secret);
+  const iv = poolIv(value, key);
+  const cipher = createCipheriv(ALGO, key, iv);
+  const enc = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return `${POOL_PREFIX}${iv.toString('base64')}:${tag.toString('base64')}:${enc.toString('base64')}`;
+}
+
+/**
+ * Decrypt a pool token.
+ *
+ * Values without the `pool:v1:` prefix are returned unchanged so rows written
+ * before at-rest encryption keep working until `npm run db:encrypt:tokens`
+ * rewrites them.
+ */
+export function decryptPoolToken(stored: string, secret?: string): string {
+  const value = String(stored ?? '');
+  if (!isEncryptedPoolToken(value)) return value;
+  const [ivB64, tagB64, dataB64] = value.slice(POOL_PREFIX.length).split(':');
+  if (!ivB64 || !tagB64 || !dataB64) {
+    throw new Error('Invalid pool token format');
+  }
+  const key = resolveKey(secret);
+  const decipher = createDecipheriv(ALGO, key, Buffer.from(ivB64, 'base64'));
+  decipher.setAuthTag(Buffer.from(tagB64, 'base64'));
+  const dec = Buffer.concat([decipher.update(Buffer.from(dataB64, 'base64')), decipher.final()]);
+  return dec.toString('utf8');
 }

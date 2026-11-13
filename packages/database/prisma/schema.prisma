@@ -332,9 +332,9 @@ enum TokenPoolKind {
 model TokenPoolEntry {
   id        String        @id @default(cuid())
   kind      TokenPoolKind
-  /// Raw Discord bot token. Stored as text: treat the database as a secret
-  /// store (restrict network access, encrypt backups). Encryption at rest is
-  /// handled by the storage volume, not by the application.
+  /// Discord bot token, encrypted at rest (`pool:v1:<iv>:<tag>:<ct>`, AES-256-GCM
+  /// with `BOT_TOKEN_ENCRYPTION_KEY`). Encryption is deterministic so the
+  /// `@@unique([kind, token])` index still dedupes the same plaintext token.
   token     String
   clientId  String?
   meta      Json?

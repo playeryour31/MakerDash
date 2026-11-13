@@ -149,9 +149,11 @@ is on. `npm run metrics` prints the coupling that these flags exist to remove.
   `packages/database/.env`, at least 32 characters. There is no hard-coded
   fallback: outside production a missing key falls back to `JWT_SECRET` with a
   warning, in production the API and bot refuse to boot
-  (`assertTokenEncryptionKey`). **`TokenPoolEntry.token` is not encrypted** — it
-  holds imported Discord tokens as text, so the database must be treated as a
-  secret store. See [SECURITY.md](SECURITY.md) for the full model.
+  (`assertTokenEncryptionKey`). `TokenPoolEntry.token` is encrypted too, with a
+  *deterministic* IV derived from the plaintext so `@@unique([kind, token])`
+  still dedupes rows; values are stored as `pool:v1:<iv>:<tag>:<ct>` and legacy
+  plaintext rows remain readable until `npm run db:encrypt:tokens:apply`. See
+  [SECURITY.md](SECURITY.md) for the full model and the trade-off.
 - **Session transport** — the dashboard JWT lives in the HttpOnly
   `maker_session` cookie (SameSite=Lax, Secure in production, 7 days).
   `Authorization: Bearer` remains supported for legacy clients. Cookies ignore

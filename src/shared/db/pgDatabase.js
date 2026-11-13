@@ -338,13 +338,13 @@ class PgDatabase {
 
   async _syncTokenPool(poolKind, tokens) {
     try {
-      const { prisma } = require('@maker/database');
+      const { prisma, encryptPoolToken } = require('@maker/database');
       const kind = poolKind;
       await prisma.$transaction([
         prisma.tokenPoolEntry.deleteMany({ where: { kind } }),
         ...tokens.slice(0, 500).map((token) =>
           prisma.tokenPoolEntry.create({
-            data: { kind, token: String(token) },
+            data: { kind, token: encryptPoolToken(String(token)) },
           }),
         ),
       ]);

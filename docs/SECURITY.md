@@ -63,8 +63,8 @@ can store the nonce cookie.
 
 | Data | Storage | Encryption |
 |---|---|---|
-| `BotInstance.token` (bot tokens) | PostgreSQL | AES-256-GCM, `BOT_TOKEN_ENCRYPTION_KEY` |
-| `TokenPoolEntry.token` (imported pools) | PostgreSQL | **Plaintext** — treat the database as a secret store |
+| `BotInstance.tokenEnc` (bot tokens) | PostgreSQL | AES-256-GCM, random IV, `BOT_TOKEN_ENCRYPTION_KEY` |
+| `TokenPoolEntry.token` (imported pools) | PostgreSQL | AES-256-GCM, **deterministic** IV, `BOT_TOKEN_ENCRYPTION_KEY` |
 | `JWT_SECRET` | Environment | n/a (used to sign sessions) |
 | SMTP credentials | Environment | n/a |
 
@@ -72,8 +72,27 @@ can store the nonce cookie.
 `packages/database/.env`, at least 32 characters, and unique per deployment.
 Rotation is covered in [SECURITY-ROTATION.md](SECURITY-ROTATION.md).
 
-Because token-pool rows are plaintext, restrict database network access, encrypt
-backups, and avoid copying dumps to shared machines.
+### Token pools
+
+Pool rows keep `@@unique([kind, token])`, so the ciphertext has to be a
+deterministic function of the plaintext — otherwise every import would insert a
+duplicate row. The IV is therefore derived with HMAC-SHA256 from the plaintext
+and a fixed context string, not from `randomBytes`. That is safe here because
+the dangerous pattern is *same IV with different plaintexts*, which cannot
+happen; the cost is that the database still reveals when two rows hold the same
+token, which the unique index already revealed.
+
+Rows are stored as `pool:v1:<iv>:<tag>:<ciphertext>`. Values without that prefix
+are legacy plaintext and are still readable so the app never breaks mid-deploy.
+Rewrite them with:
+
+```powershell
+npm run db:encrypt:tokens          # dry run
+npm run db:encrypt:tokens:apply    # rewrite in place (idempotent)
+```
+
+Deleting `BOT_TOKEN_ENCRYPTION_KEY` makes every pool token unreadable, exactly
+like bot tokens; back the key up with the database dump.
 
 ## Public surface
 
@@ -112,8 +131,10 @@ table.
 
 ## CI gates
 
-`npm run verify` runs lint, Prettier, 73 tests, deployment preflight, secret scan
+`npm run verify` runs lint, Prettier, 86 tests, deployment preflight, secret scan
 and the structural-debt ratchet. The API session path is covered by
 `Apps/api/test/session-auth.test.js`: guard (cookie + legacy Bearer), cookie
 attributes, `SESSION_COOKIE_DOMAIN`, logout, OAuth callback, OAuth `state`
-signature/expiry/nonce binding, and 2FA verification.
+signature/expiry/nonce binding, and 2FA verification. Token-pool storage
+(encryption, deterministic dedupe, legacy plaintext passthrough) is covered by
+`Apps/api/test/token-pool.test.js` and `packages/database/test/crypto.test.js`.

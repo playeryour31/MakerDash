@@ -30,14 +30,21 @@ async function hydrateTypedMirrors() {
   const cmdDb = platformCache.createPlatformDb('bot_command_configs_mirror');
   for (const c of cmds) cmdDb.set(c.clientId, c.commands);
 
-  // Token pools
+  // Token pools — rows are stored encrypted, the mirror keeps plaintext.
   const poolRows = await prisma.tokenPoolEntry.findMany({
     select: { kind: true, token: true },
   });
+  const { decryptPoolToken } = require('@maker/database');
   const byKind = {};
   for (const row of poolRows) {
     if (!byKind[row.kind]) byKind[row.kind] = [];
-    byKind[row.kind].push(row.token);
+    let token = row.token;
+    try {
+      token = decryptPoolToken(row.token);
+    } catch {
+      /* keep the stored value if the key does not match */
+    }
+    byKind[row.kind].push(token);
   }
   for (const [kind, tokens] of Object.entries(byKind)) {
     const db = platformCache.createPlatformDb(`token_pool_${kind}`);

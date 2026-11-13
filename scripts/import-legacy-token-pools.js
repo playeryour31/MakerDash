@@ -78,7 +78,7 @@ async function applyToDb(pools) {
       'DATABASE_URL is not set. Add it to packages/database/.env or export it before running --apply.',
     );
   }
-  const { prisma } = require('@maker/database');
+  const { prisma, encryptPoolToken } = require('@maker/database');
   const results = [];
 
   for (const pool of pools) {
@@ -91,7 +91,10 @@ async function applyToDb(pools) {
     for (let i = 0; i < pool.tokens.length; i += chunkSize) {
       const chunk = pool.tokens.slice(i, i + chunkSize);
       const res = await prisma.tokenPoolEntry.createMany({
-        data: chunk.map((token) => ({ kind: pool.kind, token })),
+        data: chunk.map((token) => ({
+          kind: pool.kind,
+          token: encryptPoolToken(token),
+        })),
         skipDuplicates: true,
       });
       inserted += res.count || 0;

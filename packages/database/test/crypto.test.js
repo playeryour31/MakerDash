@@ -108,3 +108,43 @@ test('assertTokenEncryptionKey fails fast without a key', () => {
     },
   );
 });
+
+test('pool tokens are deterministic so the unique index still dedupes', () => {
+  withEnv({ BOT_TOKEN_ENCRYPTION_KEY: KEY, NODE_ENV: 'development' }, () => {
+    const a = crypto.encryptPoolToken('MTAw.abc.def');
+    const b = crypto.encryptPoolToken('MTAw.abc.def');
+    assert.equal(a, b);
+    assert.notEqual(a, 'MTAw.abc.def');
+    assert.equal(crypto.decryptPoolToken(a), 'MTAw.abc.def');
+  });
+});
+
+test('different pool tokens never share a ciphertext or IV', () => {
+  withEnv({ BOT_TOKEN_ENCRYPTION_KEY: KEY, NODE_ENV: 'development' }, () => {
+    const a = crypto.encryptPoolToken('token-a');
+    const b = crypto.encryptPoolToken('token-b');
+    assert.notEqual(a, b);
+    const iv = (v) => v.split(':')[2];
+    assert.notEqual(iv(a), iv(b));
+  });
+});
+
+test('pool encryption is safe to apply twice', () => {
+  withEnv({ BOT_TOKEN_ENCRYPTION_KEY: KEY, NODE_ENV: 'development' }, () => {
+    const once = crypto.encryptPoolToken('idempotent');
+    assert.equal(crypto.encryptPoolToken(once), once);
+    assert.equal(crypto.decryptPoolToken(once), 'idempotent');
+  });
+});
+
+test('legacy plaintext pool rows are passed through untouched', () => {
+  withEnv({ BOT_TOKEN_ENCRYPTION_KEY: KEY, NODE_ENV: 'development' }, () => {
+    assert.equal(crypto.isEncryptedPoolToken('MTAw.abc.def'), false);
+    assert.equal(crypto.decryptPoolToken('MTAw.abc.def'), 'MTAw.abc.def');
+  });
+});
+
+test('pool ciphertext from another key fails authentication', () => {
+  const enc = crypto.encryptPoolToken('secret', KEY);
+  assert.throws(() => crypto.decryptPoolToken(enc, `${KEY}-other`));
+});

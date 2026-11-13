@@ -1,4 +1,8 @@
-const { prisma } = require('@maker/database');
+const {
+  prisma,
+  encryptPoolToken,
+  decryptPoolToken,
+} = require('@maker/database');
 const platformCache = require('../platformCache');
 
 const KIND_MAP = {
@@ -15,6 +19,28 @@ function mirror(kind) {
   return platformCache.createPlatformDb(`token_pool_${kind}`);
 }
 
+/** Rows are stored encrypted; mirrors keep plaintext for the legacy handlers. */
+function enc(token) {
+  return encryptPoolToken(String(token));
+}
+
+function dec(stored) {
+  return decryptPoolToken(String(stored ?? ''));
+}
+
+/**
+ * Drop a plaintext row left over from before at-rest encryption.
+ * `add`/`remove` call this so pools heal as they are used, without waiting for
+ * the one-off migration to be re-run.
+ */
+function dropLegacyRow(kind, token) {
+  const plain = String(token);
+  if (plain.startsWith('pool:v1:')) return Promise.resolve();
+  return prisma.tokenPoolEntry
+    .deleteMany({ where: { kind, token: plain } })
+    .catch(() => {});
+}
+
 function listSync(kind) {
   const k = KIND_MAP[kind] || kind;
   const tokens = mirror(k).get('Tokens');
@@ -28,7 +54,7 @@ async function list(kind) {
     orderBy: { createdAt: 'asc' },
     select: { token: true },
   });
-  const tokens = rows.map((r) => r.token);
+  const tokens = rows.map((r) => dec(r.token));
   mirror(k).set('Tokens', tokens);
   return tokens;
 }
@@ -41,9 +67,10 @@ async function take(kind = 'unused') {
   });
   if (!row) return null;
   await prisma.tokenPoolEntry.delete({ where: { id: row.id } });
-  const next = listSync(k).filter((t) => t !== row.token);
+  const token = dec(row.token);
+  const next = listSync(k).filter((t) => t !== token);
   mirror(k).set('Tokens', next);
-  return row.token;
+  return token;
 }
 
 function takeSync(kind = 'unused') {
@@ -56,7 +83,7 @@ function takeSync(kind = 'unused') {
     tokens.filter((t) => t !== token),
   );
   void prisma.tokenPoolEntry
-    .deleteMany({ where: { kind: k, token } })
+    .deleteMany({ where: { kind: k, token: { in: [enc(token), token] } } })
     .catch(() => {});
   return token;
 }
@@ -64,11 +91,13 @@ function takeSync(kind = 'unused') {
 async function add(kind, token) {
   const k = KIND_MAP[kind] || kind;
   const t = String(token);
+  const stored = enc(t);
   await prisma.tokenPoolEntry.upsert({
-    where: { kind_token: { kind: k, token: t } },
-    create: { kind: k, token: t },
+    where: { kind_token: { kind: k, token: stored } },
+    create: { kind: k, token: stored },
     update: {},
   });
+  await dropLegacyRow(k, t);
   const cur = listSync(k);
   if (!cur.includes(t)) cur.push(t);
   mirror(k).set('Tokens', cur);
@@ -88,7 +117,10 @@ function addSync(kind, token) {
 async function remove(kind, token) {
   const k = KIND_MAP[kind] || kind;
   const t = String(token);
-  await prisma.tokenPoolEntry.deleteMany({ where: { kind: k, token: t } });
+  await prisma.tokenPoolEntry.deleteMany({
+    where: { kind: k, token: enc(t) },
+  });
+  await dropLegacyRow(k, t);
   mirror(k).set(
     'Tokens',
     listSync(k).filter((x) => x !== t),
@@ -113,7 +145,7 @@ function setTokensSync(kind, tokens) {
     await prisma.tokenPoolEntry.deleteMany({ where: { kind: k } });
     for (const token of list.slice(0, 2000)) {
       await prisma.tokenPoolEntry
-        .create({ data: { kind: k, token } })
+        .create({ data: { kind: k, token: enc(token) } })
         .catch(() => {});
     }
   })();
