@@ -35,7 +35,7 @@ DATA_READ_SOURCE=postgres
 DATA_SHADOW_COMPARE=false
 USE_BOT_DATA_API=true
 BOT_INTERNAL_API_KEY=...
-INTERNAL_API_URL=http://127.0.0.1:4000/api
+INTERNAL_API_URL=http://127.0.0.1:3011/api
 BOT_TOKEN_ENCRYPTION_KEY=...
 ```
 
@@ -55,6 +55,15 @@ BOT_TOKEN_ENCRYPTION_KEY=...
 
 ### Security & operations
 
+- **Token encryption** — bot tokens are AES-256-GCM encrypted at rest, keyed by
+  `BOT_TOKEN_ENCRYPTION_KEY` (scrypt-derived, cached after first use). The key
+  must be **identical** in `Apps/api/.env` and `packages/database/.env`, at least
+  32 characters. There is no hard-coded fallback: outside production a missing
+  key falls back to `JWT_SECRET` with a warning, in production the API and bot
+  refuse to boot (`assertTokenEncryptionKey`).
+- **Deployment preflight** — `npm run preflight` compares the nginx upstream,
+  `WEB_PORT`, `INTERNAL_API_ORIGIN`, `PORT`, `INTERNAL_API_URL` and the two
+  encryption-key copies, printing a key fingerprint (never the value).
 - **Secrets** — never in the repo. Everything is read from env first
   (`src/shared/config/index.js`): `MAIN_BOT_TOKEN`, `MAIN_LOG_BOT_TOKEN`,
   `OPENAI_API_KEY`, `MAKER_WEBHOOK_TOKEN`, `MONGODB_URI`.

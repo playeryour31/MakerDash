@@ -2,8 +2,8 @@
 
 ```text
 Apps/
-  web/   Next.js + Tailwind  → http://localhost:3000  (@maker/web)
-  api/   Nest.js API         → http://localhost:4000/api  (@maker/api)
+  web/   Next.js + Tailwind  → http://localhost:4084  (@maker/web)
+  api/   Nest.js API         → http://localhost:3011/api  (@maker/api)
   bot/   تشغيل البوت عبر Turbo  (@maker/bot)
 ```
 
@@ -19,14 +19,14 @@ npm run start
 
 1. أنشئ تطبيقًا في [Discord Developer Portal](https://discord.com/developers/applications)
 2. OAuth2 → Redirects أضف:
-   `http://localhost:4000/api/auth/discord/callback`
+   `http://localhost:3011/api/auth/discord/callback`
 3. انسخ Client ID / Secret إلى `Apps/api/.env`:
 
 ```env
 DISCORD_CLIENT_ID=...
 DISCORD_CLIENT_SECRET=...
-DISCORD_REDIRECT_URI=http://localhost:4000/api/auth/discord/callback
-DASHBOARD_PUBLIC_URL=http://localhost:3000
+DISCORD_REDIRECT_URI=http://localhost:3011/api/auth/discord/callback
+DASHBOARD_PUBLIC_URL=http://localhost:4084
 ```
 
 ### التدفق

@@ -4,6 +4,8 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { loadEnv } = require('./lib/load-env');
+loadEnv();
 const { prisma, encryptBotToken } = require('@maker/database');
 
 const tokensFile = path.resolve(__dirname, '..', 'Database', 'Others', 'Tokens.json');

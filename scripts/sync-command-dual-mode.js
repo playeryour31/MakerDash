@@ -2,6 +2,8 @@
  * Refresh BotCommandConfig entries for help/line slash dual-mode.
  * Run: node scripts/sync-command-dual-mode.js
  */
+const { loadEnv } = require('./lib/load-env');
+loadEnv();
 const { prisma } = require('@maker/database');
 
 const PATCHES = {

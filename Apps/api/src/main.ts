@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { AppModule } from './app.module';
 import { apiRateLimiters } from './common/rate-limit.middleware';
+import { assertTokenEncryptionKey } from '@maker/database';
 
 const envDir = path.resolve(__dirname, '..');
 config({ path: path.join(envDir, '.env') });
@@ -33,6 +34,9 @@ function resolveMakerRoot() {
 }
 
 async function bootstrap() {
+  // Refuse to serve traffic without a working token-encryption key.
+  assertTokenEncryptionKey();
+
   const makerRoot = resolveMakerRoot();
   process.chdir(makerRoot);
   process.env.MAKER_ROOT = makerRoot;
@@ -72,7 +76,7 @@ async function bootstrap() {
   app.use('/api/auth/security', apiRateLimiters.authSecurity);
   app.use('/api/auth', apiRateLimiters.auth);
 
-  const corsRaw = process.env.CORS_ORIGIN || 'http://localhost:3000';
+  const corsRaw = process.env.CORS_ORIGIN || 'http://localhost:4084';
   const corsOrigins = corsRaw
     .split(',')
     .map((s) => s.trim())
@@ -118,17 +122,17 @@ async function bootstrap() {
     }
   }
 
-  const port = Number(process.env.PORT || 4000);
+  const port = Number(process.env.PORT || 3011);
   await app.listen(port);
 
   const logger = new Logger('api');
   logger.log(`Apply API → http://127.0.0.1:${port}/api`);
   logger.log(`Maker root → ${makerRoot}`);
   logger.log(
-    `Dashboard URL → ${process.env.DASHBOARD_PUBLIC_URL || 'http://localhost:3000'}`,
+    `Dashboard URL → ${process.env.DASHBOARD_PUBLIC_URL || 'http://localhost:4084'}`,
   );
   logger.log(
-    `OAuth redirect → ${process.env.DISCORD_REDIRECT_URI || 'http://localhost:4000/api/auth/discord/callback'}`,
+    `OAuth redirect → ${process.env.DISCORD_REDIRECT_URI || 'http://localhost:3011/api/auth/discord/callback'}`,
   );
   logger.log(
     `Partner API → /api/partner/v1 (HMAC) | legacy provision → /api/internal/bots/provision`,

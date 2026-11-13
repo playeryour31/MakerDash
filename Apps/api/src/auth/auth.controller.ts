@@ -26,7 +26,7 @@ export class AuthController {
     } catch (err: any) {
       const message = String(err?.message || 'oauth_start_failed');
       const publicUrl = (
-        process.env.DASHBOARD_PUBLIC_URL || 'http://localhost:3000'
+        process.env.DASHBOARD_PUBLIC_URL || 'http://localhost:4084'
       ).replace(/\/$/, '');
       return res.redirect(
         `${publicUrl}/?error=${encodeURIComponent(message.slice(0, 120))}`,
@@ -42,7 +42,7 @@ export class AuthController {
     @Res() res: Response,
   ) {
     const publicUrl = (
-      process.env.DASHBOARD_PUBLIC_URL || 'http://localhost:3000'
+      process.env.DASHBOARD_PUBLIC_URL || 'http://localhost:4084'
     ).replace(/\/$/, '');
 
     if (error || !code) {

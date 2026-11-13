@@ -5,6 +5,7 @@
  *   npm run import:phase1 --workspace=@maker/database
  *   npm run import:phase1:dry --workspace=@maker/database
  */
+import './load-env';
 import * as fs from 'fs';
 import * as path from 'path';
 import {

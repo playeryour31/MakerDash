@@ -42,7 +42,7 @@ console.log(`${chalk.gray('root')}  ${ROOT}`);
 console.log(`${chalk.gray('hint')}  full stack: ${chalk.cyan('npm run dev')}`);
 if (process.env.USE_BOT_DATA_API === 'true' || process.env.USE_BOT_DATA_API === '1') {
   console.log(
-    `${chalk.gray('data')}  API → ${process.env.INTERNAL_API_URL || 'http://127.0.0.1:4000/api'}`,
+    `${chalk.gray('data')}  API → ${process.env.INTERNAL_API_URL || 'http://127.0.0.1:3011/api'}`,
   );
 } else {
   console.log(`${chalk.gray('data')}  Prisma direct (USE_BOT_DATA_API off)`);

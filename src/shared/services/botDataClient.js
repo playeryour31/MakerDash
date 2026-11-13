@@ -11,7 +11,7 @@ function baseUrl() {
   return (
     process.env.INTERNAL_API_URL ||
     process.env.API_URL ||
-    'http://127.0.0.1:4000/api'
+    'http://127.0.0.1:3011/api'
   ).replace(/\/$/, '');
 }
 

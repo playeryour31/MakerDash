@@ -36,7 +36,7 @@ export class AuthService {
     return (
       process.env.DASHBOARD_PUBLIC_URL ||
       process.env.NEXT_PUBLIC_APP_URL ||
-      'http://localhost:3000'
+      'http://localhost:4084'
     ).replace(/\/$/, '');
   }
 
@@ -51,7 +51,7 @@ export class AuthService {
   private redirectUri() {
     return (
       process.env.DISCORD_REDIRECT_URI ||
-      'http://localhost:4000/api/auth/discord/callback'
+      'http://localhost:3011/api/auth/discord/callback'
     );
   }
 

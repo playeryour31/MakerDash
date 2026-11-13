@@ -19,6 +19,10 @@ async function bootstrapMakerAsync() {
   if (!process.env.DATA_READ_SOURCE) process.env.DATA_READ_SOURCE = 'postgres';
   if (!process.env.DATA_SHADOW_COMPARE) process.env.DATA_SHADOW_COMPARE = 'false';
 
+  // Bot tokens are AES-256-GCM encrypted at rest. Without a usable key the
+  // bots would silently fall back to stale JSON, so refuse to boot instead.
+  require('@maker/database').assertTokenEncryptionKey();
+
   try {
     const featureCache = require('../shared/services/featureCache');
     const platformCache = require('../shared/services/platformCache');

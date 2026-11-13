@@ -6,8 +6,8 @@ Monorepo: Discord bots + dashboard (Next) + API (Nest) + PostgreSQL.
 
 ```text
 Apps/
-  web/          Next.js dashboard          → @maker/web   :3000
-  api/          NestJS API                 → @maker/api   :4000
+  web/          Next.js dashboard          → @maker/web   :4084
+  api/          NestJS API                 → @maker/api   :3011
   bot/          Turbo entry for Discord    → @maker/bot
 packages/
   database/     Prisma / PostgreSQL        → @maker/database

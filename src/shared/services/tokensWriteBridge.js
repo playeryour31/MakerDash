@@ -27,7 +27,7 @@ async function botDataClientRequestUpsert(bot) {
   const base = (
     process.env.INTERNAL_API_URL ||
     process.env.API_URL ||
-    'http://127.0.0.1:4000/api'
+    'http://127.0.0.1:3011/api'
   ).replace(/\/$/, '');
   const key =
     process.env.BOT_INTERNAL_API_KEY || process.env.PROVISION_API_KEY || '';

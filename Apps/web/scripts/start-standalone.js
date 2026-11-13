@@ -4,8 +4,8 @@
  * Always binds IPv4 0.0.0.0 — container HOSTNAME often resolves to IPv6-only
  * and breaks Volyx/Pterodactyl reverse-proxy + public IPv4 access.
  *
- * Port priority: WEB_PORT → SERVER_PORT → 3000
- * (Avoids clashing with API PORT.)
+ * Port priority: WEB_PORT → SERVER_PORT → 4084
+ * (4084 is this project's canonical web port; API defaults to 3011.)
  */
 const path = require('path');
 const fs = require('fs');
@@ -24,7 +24,7 @@ if (!server) {
 }
 
 const port = String(
-  process.env.WEB_PORT || process.env.SERVER_PORT || '3000',
+  process.env.WEB_PORT || process.env.SERVER_PORT || '4084',
 );
 process.env.PORT = port;
 // Force IPv4 all-interfaces bind (do NOT use container HOSTNAME).

@@ -2,6 +2,7 @@
  * Import remaining JSON stores into Postgres (Phase 2+).
  * Skips Apply (already Phase 1).
  */
+import './load-env';
 import * as fs from 'fs';
 import * as path from 'path';
 import { prisma } from '../src/index';

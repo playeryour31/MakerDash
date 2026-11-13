@@ -120,7 +120,7 @@ export class PartnerService {
     },
   ) {
     const publicUrl = (
-      process.env.DASHBOARD_PUBLIC_URL || 'http://localhost:3000'
+      process.env.DASHBOARD_PUBLIC_URL || 'http://localhost:4084'
     ).replace(/\/$/, '');
     const dashboardUrl =
       access?.dashboardUrl ||

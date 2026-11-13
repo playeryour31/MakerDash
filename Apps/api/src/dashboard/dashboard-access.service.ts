@@ -22,7 +22,7 @@ export class DashboardAccessService {
     return (
       process.env.DASHBOARD_PUBLIC_URL ||
       process.env.NEXT_PUBLIC_APP_URL ||
-      'http://localhost:3000'
+      'http://localhost:4084'
     ).replace(/\/$/, '');
   }
 
