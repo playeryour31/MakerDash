@@ -1,6 +1,12 @@
 /**
- * Ask the Nest API for the Discord authorize URL (server-side).
- * The page then redirects the browser straight to discord.com — no client JS.
+ * Ask the Nest API whether Discord OAuth is configured, then hand the browser a
+ * same-origin URL to continue.
+ *
+ * The API mints a one-shot CSRF nonce and stores it in an HttpOnly cookie when
+ * `/api/auth/discord` is requested. A server-side fetch here would receive that
+ * Set-Cookie and throw it away (Server Components cannot set cookies), so the
+ * callback would be rejected as `oauth_state_invalid`. Returning the relative
+ * proxy path keeps the whole flow in the browser.
  */
 export async function getDiscordAuthorizeUrl(
   state: string,
@@ -20,13 +26,12 @@ export async function getDiscordAuthorizeUrl(
       },
     );
 
-    const location = res.headers.get('location');
-    if (!location) {
+    if (!res.headers.get('location')) {
       return {
         error: `تعذر بدء تسجيل Discord (HTTP ${res.status}). تأكد أن الـ API يعمل.`,
       };
     }
-    return { url: location };
+    return { url: `/api/auth/discord?state=${encodeURIComponent(state)}` };
   } catch (err: any) {
     return {
       error: err?.message || 'تعذر الاتصال بخادم المصادقة',

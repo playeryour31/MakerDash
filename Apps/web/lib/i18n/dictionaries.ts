@@ -47,6 +47,8 @@ const ar = {
     invalidLink: 'رابط الداشبورد غير صالح أو منتهي.',
     oauthDenied: 'تم إلغاء تسجيل الدخول من Discord.',
     oauthFailed: 'فشل الاتصال بـ Discord. حاول مرة أخرى.',
+    oauthStateInvalid:
+      'انتهت صلاحية جلسة تسجيل الدخول أو أنها غير صالحة. ابدأ تسجيل الدخول من جديد.',
     invalidAdminInvite: 'رابط دعوة الإداري غير صالح أو منتهي.',
     loadBots: 'تعذر تحميل بوتاتك. تأكد أن الـ API يعمل.',
     loadBot: 'تعذر تحميل بيانات البوت',
@@ -1522,6 +1524,8 @@ const en: Dictionary = {
     invalidLink: 'This dashboard link is invalid or expired.',
     oauthDenied: 'Discord sign-in was cancelled.',
     oauthFailed: 'Could not connect to Discord. Please try again.',
+    oauthStateInvalid:
+      'The sign-in session expired or is invalid. Start the sign-in again.',
     invalidAdminInvite: 'This admin invite link is invalid or expired.',
     loadBots: 'Could not load your bots. Make sure the API is running.',
     loadBot: 'Could not load bot data',

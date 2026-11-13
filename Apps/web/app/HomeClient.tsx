@@ -25,6 +25,7 @@ export default function HomeClient() {
       oauth_denied: t.errors.oauthDenied,
       oauth_failed: t.errors.oauthFailed,
       invalid_admin_invite: t.errors.invalidAdminInvite,
+      oauth_state_invalid: t.errors.oauthStateInvalid,
     };
     return map[errorKey] || t.errors.generic;
   }, [errorKey, t]);

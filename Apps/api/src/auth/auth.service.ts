@@ -12,6 +12,7 @@ import {
   AccountSecurityService,
   SecurityMethod,
 } from './account-security.service';
+import { signOAuthState } from './oauth-state';
 
 export type DiscordLoginResult = {
   redirectUrl: string;
@@ -65,7 +66,14 @@ export class AuthService {
     );
   }
 
-  getDiscordAuthorizeUrl(state?: string) {
+  /**
+   * Build the Discord authorize URL.
+   *
+   * `state` is wrapped into a signed, nonce-bound envelope (see oauth-state.ts)
+   * so the callback can prove it belongs to the browser that started the flow.
+   * The caller must persist `nonce` in the maker_oauth_state cookie.
+   */
+  getDiscordAuthorizeUrl(state?: string, nonce?: string) {
     if (!this.clientId()) {
       throw new BadRequestException(
         'DISCORD_CLIENT_ID is not configured on the API',
@@ -77,7 +85,10 @@ export class AuthService {
       scope: 'identify email',
       redirect_uri: this.redirectUri(),
     });
-    if (state) params.set('state', state);
+    // Signed envelope when a nonce was issued; raw value only for internal
+    // callers that build the URL themselves (no browser round-trip).
+    if (nonce) params.set('state', signOAuthState(state, nonce));
+    else if (state) params.set('state', state);
     return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
   }
 

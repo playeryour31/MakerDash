@@ -21,6 +21,14 @@ const {
 } = require('../dist/auth/session-cookie');
 const { JwtAuthGuard } = require('../dist/auth/jwt-auth.guard');
 const { AuthController } = require('../dist/auth/auth.controller');
+const { AuthService } = require('../dist/auth/auth.service');
+const {
+  OAUTH_STATE_COOKIE,
+  OAUTH_STATE_TTL_MS,
+  createOAuthNonce,
+  signOAuthState,
+  verifyOAuthState,
+} = require('../dist/auth/oauth-state');
 
 function fakeRes() {
   const cookies = [];
@@ -64,10 +72,7 @@ test('readSessionCookie extracts only maker_session', () => {
     },
   };
   assert.equal(readSessionCookie(req), 'abc.def.ghi');
-  assert.equal(
-    readSessionCookie({ headers: { cookie: 'theme=dark' } }),
-    null,
-  );
+  assert.equal(readSessionCookie({ headers: { cookie: 'theme=dark' } }), null);
   assert.equal(readSessionCookie({}), null);
   assert.equal(
     readSessionCookie({ headers: { cookie: 'maker_session=' } }),
@@ -76,7 +81,9 @@ test('readSessionCookie extracts only maker_session', () => {
 });
 
 test('readSessionCookie decodes URL-encoded values', () => {
-  const req = { headers: { cookie: `maker_session=${encodeURIComponent('a b+c')}` } };
+  const req = {
+    headers: { cookie: `maker_session=${encodeURIComponent('a b+c')}` },
+  };
   assert.equal(readSessionCookie(req), 'a b+c');
 });
 
@@ -176,21 +183,139 @@ test('POST /auth/logout clears the session cookie', () => {
 });
 
 test('Discord callback sets the cookie and keeps the token out of the URL', async () => {
+  let receivedState;
   const controller = new AuthController({
-    completeDiscordLogin: async () => ({
-      redirectUrl: 'http://localhost:4084/auth/callback?next=%2Fdashboard',
-      accessToken: 'fresh-jwt',
-    }),
+    completeDiscordLogin: async (_code, state) => {
+      receivedState = state;
+      return {
+        redirectUrl: 'http://localhost:4084/auth/callback?next=%2Fdashboard',
+        accessToken: 'fresh-jwt',
+      };
+    },
   });
+  const nonce = createOAuthNonce();
+  const state = signOAuthState('admin:slug-1', nonce, {
+    secret: 'test-secret',
+  });
+  process.env.JWT_SECRET = 'test-secret';
   const res = fakeRes();
-  await controller.discordCallback('code', undefined, undefined, res);
+  await controller.discordCallback(
+    'code',
+    state,
+    undefined,
+    { headers: { cookie: `${OAUTH_STATE_COOKIE}=${nonce}` } },
+    res,
+  );
 
-  assert.equal(res.cookies.length, 1);
-  assert.equal(res.cookies[0].name, SESSION_COOKIE);
-  assert.equal(res.cookies[0].value, 'fresh-jwt');
+  assert.equal(receivedState, 'admin:slug-1');
+  const session = res.cookies.find((c) => c.name === SESSION_COOKIE);
+  assert.equal(session.value, 'fresh-jwt');
   assert.equal(res.redirects.length, 1);
   assert.ok(!res.redirects[0].includes('fresh-jwt'));
   assert.ok(!res.redirects[0].includes('token='));
+  // The one-shot CSRF cookie is always cleared.
+  assert.ok(res.clearedCookies.some((c) => c.name === OAUTH_STATE_COOKIE));
+});
+
+test('Discord callback rejects a callback without the state cookie', async () => {
+  process.env.JWT_SECRET = 'test-secret';
+  const nonce = createOAuthNonce();
+  const state = signOAuthState(null, nonce, { secret: 'test-secret' });
+  const controller = new AuthController({
+    completeDiscordLogin: async () => {
+      throw new Error('must not be called');
+    },
+  });
+  const res = fakeRes();
+  await controller.discordCallback(
+    'code',
+    state,
+    undefined,
+    { headers: {} },
+    res,
+  );
+
+  assert.equal(
+    res.redirects[0],
+    'http://localhost:4084/?error=oauth_state_invalid',
+  );
+  assert.equal(res.cookies.length, 0);
+});
+
+test('Discord callback rejects a state minted for another browser', async () => {
+  process.env.JWT_SECRET = 'test-secret';
+  const state = signOAuthState(null, createOAuthNonce(), {
+    secret: 'test-secret',
+  });
+  const controller = new AuthController({
+    completeDiscordLogin: async () => {
+      throw new Error('must not be called');
+    },
+  });
+  const res = fakeRes();
+  await controller.discordCallback(
+    'code',
+    state,
+    undefined,
+    { headers: { cookie: `${OAUTH_STATE_COOKIE}=someone-else` } },
+    res,
+  );
+
+  assert.equal(
+    res.redirects[0],
+    'http://localhost:4084/?error=oauth_state_invalid',
+  );
+});
+
+test('oauth state rejects tampering, expiry and wrong secrets', () => {
+  const nonce = createOAuthNonce();
+  const state = signOAuthState('admin:abc', nonce, {
+    secret: 'test-secret',
+    now: 1_000_000,
+  });
+
+  assert.equal(
+    verifyOAuthState(state, nonce, { secret: 'test-secret', now: 1_000_001 }),
+    'admin:abc',
+  );
+  assert.throws(
+    () =>
+      verifyOAuthState(`${state}x`, nonce, {
+        secret: 'test-secret',
+        now: 1_000_001,
+      }),
+    /bad_state_signature|malformed_state/,
+  );
+  assert.throws(
+    () =>
+      verifyOAuthState(state, nonce, {
+        secret: 'other-secret',
+        now: 1_000_001,
+      }),
+    /bad_state_signature/,
+  );
+  assert.throws(
+    () =>
+      verifyOAuthState(state, nonce, {
+        secret: 'test-secret',
+        now: 1_000_000 + OAUTH_STATE_TTL_MS + 1,
+      }),
+    /state_expired/,
+  );
+});
+
+test('Discord authorize URL carries a signed state, not the raw slug', () => {
+  process.env.JWT_SECRET = 'test-secret';
+  const service = new AuthService({ sign: () => 'jwt' }, {}, {}, {}, {}, {});
+  process.env.DISCORD_CLIENT_ID = 'client-id';
+  const url = new URL(service.getDiscordAuthorizeUrl('admin:slug', 'n0nce'));
+  const state = url.searchParams.get('state');
+  assert.ok(state);
+  assert.ok(!state.includes('admin:slug'));
+  assert.equal(
+    verifyOAuthState(state, 'n0nce', { secret: 'test-secret' }),
+    'admin:slug',
+  );
 });
 
 test('security challenge verify sets the cookie and strips accessToken', async () => {

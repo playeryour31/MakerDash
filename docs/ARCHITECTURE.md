@@ -156,7 +156,9 @@ is on. `npm run metrics` prints the coupling that these flags exist to remove.
   `maker_session` cookie (SameSite=Lax, Secure in production, 7 days).
   `Authorization: Bearer` remains supported for legacy clients. Cookies ignore
   ports but not hostnames, so the dashboard and the OAuth callback must share a
-  host; otherwise set `SESSION_COOKIE_DOMAIN` to a parent domain.
+  host; otherwise set `SESSION_COOKIE_DOMAIN` to a parent domain. The OAuth
+  `state` is a signed, nonce-bound envelope (one-shot `maker_oauth_state`
+  cookie), so a callback from another browser is rejected.
 - **Deployment preflight** — `npm run preflight` compares the nginx upstream,
   `WEB_PORT`, `INTERNAL_API_ORIGIN`, `PORT`, `INTERNAL_API_URL`, the two
   encryption-key copies (printing a fingerprint, never the value) and the

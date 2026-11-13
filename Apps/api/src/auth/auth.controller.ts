@@ -9,7 +9,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import type { SecurityMethod } from './account-security.service';
@@ -17,15 +17,28 @@ import {
   clearSessionCookie,
   setSessionCookie,
 } from './session-cookie';
+import {
+  clearOAuthStateCookie,
+  createOAuthNonce,
+  readOAuthStateCookie,
+  setOAuthStateCookie,
+  verifyOAuthState,
+} from './oauth-state';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
   @Get('discord')
-  discordStart(@Query('state') state: string | undefined, @Res() res: Response) {
+  discordStart(
+    @Query('state') state: string | undefined,
+    @Res() res: Response,
+  ) {
     try {
-      const url = this.auth.getDiscordAuthorizeUrl(state || undefined);
+      // Random nonce -> HttpOnly cookie. Discord echoes only the signature.
+      const nonce = createOAuthNonce();
+      const url = this.auth.getDiscordAuthorizeUrl(state || undefined, nonce);
+      setOAuthStateCookie(res, nonce);
       return res.redirect(url);
     } catch (err: any) {
       const message = String(err?.message || 'oauth_start_failed');
@@ -43,11 +56,16 @@ export class AuthController {
     @Query('code') code: string,
     @Query('state') state: string | undefined,
     @Query('error') error: string | undefined,
+    @Req() req: Request,
     @Res() res: Response,
   ) {
     const publicUrl = (
       process.env.DASHBOARD_PUBLIC_URL || 'http://localhost:4084'
     ).replace(/\/$/, '');
+
+    // One-shot cookie: clear it whatever the outcome.
+    const nonce = readOAuthStateCookie(req);
+    clearOAuthStateCookie(res);
 
     if (error || !code) {
       return res.redirect(
@@ -55,8 +73,20 @@ export class AuthController {
       );
     }
 
+    let inner: string | null;
     try {
-      const result = await this.auth.completeDiscordLogin(code, state);
+      // Rejects forged/replayed callbacks: bad signature, another browser's
+      // nonce, or a flow older than OAUTH_STATE_TTL_MS.
+      inner = verifyOAuthState(state, nonce);
+    } catch {
+      return res.redirect(`${publicUrl}/?error=oauth_state_invalid`);
+    }
+
+    try {
+      const result = await this.auth.completeDiscordLogin(
+        code,
+        inner ?? undefined,
+      );
       // Session lives in an HttpOnly cookie; the redirect URL carries no token.
       if (result.accessToken) setSessionCookie(res, result.accessToken);
       return res.redirect(result.redirectUrl);

@@ -21,6 +21,10 @@ to the repository owner with reproduction steps and affected version/commit.
 | Legacy | `Authorization: Bearer <jwt>` is still accepted for API clients and old magic links |
 | In URLs | Never. The OAuth redirect carries only `?next=` |
 
+OAuth also uses a one-shot `maker_oauth_state` cookie (10 minutes, HttpOnly) to
+bind the callback to the browser that started the flow — see
+[OAuth `state`](#oauth-state).
+
 ### Same-host requirement
 
 Cookies are scoped to a **hostname**, not a port. The supported topology is a
@@ -38,10 +42,22 @@ If the API is moved to a separate hostname (`api.example.com`), either:
 
 ### OAuth `state`
 
-`state` currently carries the admin-invite or bot magic-link identifier. It is
-**not** an unguessable CSRF nonce. The impact is limited to login CSRF and the
-flow still requires Discord consent, but a future change should add a random
-nonce alongside the identifier.
+`state` no longer carries the raw admin-invite or magic-link slug. `/api/auth/discord`
+mints a random nonce, stores it in the HttpOnly `maker_oauth_state` cookie
+(10 minutes) and sends Discord a signed envelope containing the identifier plus
+that nonce. `/api/auth/discord/callback` accepts the return only when:
+
+1. the HMAC signature matches `JWT_SECRET`,
+2. the nonce equals the cookie value (same browser),
+3. the envelope is younger than `OAUTH_STATE_TTL_MS`.
+
+Failures redirect to `/?error=oauth_state_invalid`. The cookie is cleared on
+every callback, so a replayed callback fails too. This closes the login-CSRF gap
+while keeping the existing magic-link semantics.
+
+Invite pages (`/a/[slug]`, `/b/[slug]`) now redirect the **browser** to
+`/api/auth/discord` instead of fetching it server-side, because only the browser
+can store the nonce cookie.
 
 ## Stored credentials
 
@@ -96,7 +112,8 @@ table.
 
 ## CI gates
 
-`npm run verify` runs lint, Prettier, 69 tests, deployment preflight, secret scan
-and the structural-debt ratchet. The API cookie path is covered by
-`Apps/api/test/session-auth.test.js` (guard, cookie attributes, logout, OAuth
-callback, 2FA verification).
+`npm run verify` runs lint, Prettier, 73 tests, deployment preflight, secret scan
+and the structural-debt ratchet. The API session path is covered by
+`Apps/api/test/session-auth.test.js`: guard (cookie + legacy Bearer), cookie
+attributes, `SESSION_COOKIE_DOMAIN`, logout, OAuth callback, OAuth `state`
+signature/expiry/nonce binding, and 2FA verification.
