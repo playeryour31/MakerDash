@@ -2,6 +2,7 @@ const {
   prisma,
   encryptPoolToken,
   decryptPoolToken,
+  isEncryptedPoolToken,
 } = require('@maker/database');
 const platformCache = require('../platformCache');
 
@@ -35,7 +36,7 @@ function dec(stored) {
  */
 function dropLegacyRow(kind, token) {
   const plain = String(token);
-  if (plain.startsWith('pool:v1:')) return Promise.resolve();
+  if (isEncryptedPoolToken(plain)) return Promise.resolve();
   return prisma.tokenPoolEntry
     .deleteMany({ where: { kind, token: plain } })
     .catch(() => {});
