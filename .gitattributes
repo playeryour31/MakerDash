@@ -1,0 +1,28 @@
+# Normalize every text file to LF in the repository so Windows checkouts
+# (core.autocrlf=true) no longer show "modified" files that only differ in
+# line endings. Prettier is configured with endOfLine: "lf" too.
+* text=auto eol=lf
+
+# Windows-only scripts need CRLF so cmd.exe keeps working.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets: never touch them.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.mp3 binary
+*.mp4 binary
+*.webm binary
+*.zip binary
+*.pdf binary
+*.sqlite binary
+*.db binary
