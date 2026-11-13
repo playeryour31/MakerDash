@@ -6,9 +6,11 @@ import { getDiscordAuthorizeUrl } from '@/lib/discord-oauth';
 export default async function AdminInvitePage({
   params,
 }: {
-  params: { slug: string };
+  // Next 16: route params are async.
+  params: Promise<{ slug: string }>;
 }) {
-  const state = `admin:${params.slug}`;
+  const { slug } = await params;
+  const state = `admin:${slug}`;
   const { url, error } = await getDiscordAuthorizeUrl(state);
   if (url) redirect(url);
 

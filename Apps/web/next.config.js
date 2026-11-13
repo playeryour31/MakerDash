@@ -124,8 +124,9 @@ const nextConfig = {
   reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
+  // Promoted out of `experimental` in Next 15/16.
+  outputFileTracingRoot: path.join(__dirname, '../..'),
   experimental: {
-    outputFileTracingRoot: path.join(__dirname, '../..'),
     optimizePackageImports: ['lucide-react'],
   },
   webpack: (config) => {
@@ -179,15 +180,19 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: '/maker-hero-visual:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
+      // path-to-regexp v8 (Next 16) rejects `:path*` glued to a literal
+      // prefix, so list the hero assets explicitly.
+      ...['/maker-hero-visual.png', '/maker-hero-visual.webp', '/maker-hero-visual-sm.webp'].map(
+        (source) => ({
+          source,
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
+            },
+          ],
+        }),
+      ),
       {
         source: '/manifest.webmanifest',
         headers: [

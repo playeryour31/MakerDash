@@ -1,13 +1,8 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import dynamic from 'next/dynamic';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
 import SWRProvider from '@/components/SWRProvider';
-
-const ServiceWorkerGuard = dynamic(
-  () => import('@/components/ServiceWorkerGuard'),
-  { ssr: false },
-);
+import ServiceWorkerGuardMount from '@/components/ServiceWorkerGuardMount';
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -115,7 +110,7 @@ export default function RootLayout({
       </head>
       <body className="font-cairo-body" suppressHydrationWarning>
         <I18nProvider>
-          <ServiceWorkerGuard />
+          <ServiceWorkerGuardMount />
           <SWRProvider>{children}</SWRProvider>
         </I18nProvider>
       </body>

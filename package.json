@@ -19,8 +19,9 @@
     "start:api": "npm run start --workspace=@maker/api",
     "start:web": "npm run start --workspace=@maker/web",
     "build": "turbo run build",
-    "test": "npm run build --workspace=@maker/database --silent && npm run build --workspace=@maker/subscriptions --silent && node --test",
+    "test": "npm run build --workspace=@maker/database --silent && npm run build --workspace=@maker/queue --silent && npm run build --workspace=@maker/subscriptions --silent && npm run build --workspace=@maker/api --silent && node --test",
     "bot": "node scripts/run-bot.js",
+    "coarena": "node scripts/coarena.js",
     "api:dev": "npm run start:dev --workspace=@maker/api",
     "web:dev": "npm run dev --workspace=@maker/web",
     "db:generate": "npm run generate --workspace=@maker/database",
@@ -51,7 +52,7 @@
     "@snazzah/davey": "^0.1.12",
     "archiver": "^7.0.1",
     "axios": "^1.7.9",
-    "body-parser": "^1.20.2",
+    "body-parser": "1.20.9",
     "canvas": "^3.1.0",
     "chalk": "^4.1.2",
     "cookie-parser": "^1.4.6",
@@ -76,16 +77,27 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
-    "@next/eslint-plugin-next": "^15.5.29",
+    "@next/eslint-plugin-next": "^16.4.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^16.5.0",
     "prettier": "^3.10.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "turbo": "^2.11.5",
     "typescript-eslint": "^8.72.2"
   },
   "engines": {
-    "node": ">=20.17.0"
+    "node": ">=22.0.0"
+  },
+  "overrides": {
+    "body-parser": "1.20.9",
+    "multer": "2.5.0",
+    "undici": "6.29.1",
+    "canvas": "$canvas",
+    "qs": "6.17.1"
   },
   "packageManager": "npm@11.16.0",
   "allowScripts": {

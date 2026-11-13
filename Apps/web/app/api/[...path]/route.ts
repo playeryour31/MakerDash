@@ -12,7 +12,7 @@ function apiOrigin() {
   ).replace(/\/$/, '');
 }
 
-type Ctx = { params: { path?: string[] } };
+type Ctx = { params: Promise<{ path?: string[] }> };
 
 /**
  * Internal and Partner APIs are server-to-server only (see
@@ -28,7 +28,8 @@ const BLOCKED_PREFIXES = new Set(
 );
 
 async function proxy(req: NextRequest, ctx: Ctx) {
-  const parts = ctx.params.path || [];
+  const { path: segments } = await ctx.params;
+  const parts = segments || [];
   const first = String(parts[0] || '').toLowerCase();
   if (BLOCKED_PREFIXES.has(first)) {
     // 404 (not 403) so the proxy does not confirm these routes exist.

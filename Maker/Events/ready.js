@@ -1,3 +1,6 @@
+const { createLogger } = require('../../src/shared/utils/logger');
+const log = createLogger('Maker');
+
 const config = require("../../Main/Resources/Config.json");
 const {
   Discord,
@@ -114,7 +117,7 @@ function applyBotPresence(client, name, typeKey, url, status) {
   });
 
   const applied = client.user.presence?.activities?.[0];
-  console.log(
+  log.info(
     `[presence] ${client.user.username}: type=${applied?.type} name=${applied?.name} url=${applied?.url || "-"}`,
   );
   return true;
@@ -129,7 +132,7 @@ module.exports.run = async (client) => {
     const every = (name, ms, fn) => scheduler.every(ms, fn, { name, scope });
     const after = (name, ms, fn) =>
       scheduler.after(ms, fn, name ? { name, scope } : { scope });
-    console.log(
+    log.info(
       `${chalk.bgHex("#0d9488").white.bold(" bot ")} ${chalk.green("✓")} ${client.user.username} online`,
     );
 
@@ -137,13 +140,13 @@ module.exports.run = async (client) => {
       const { enforceGuildLock } = require("../lib/guildLock");
       const lock = await enforceGuildLock(client);
       if (lock.locked) {
-        console.log(
+        log.info(
           `[guild-lock] ${client.user.id} locked to ${lock.locked}` +
             (lock.left ? ` (left ${lock.left} other guild(s))` : ""),
         );
       }
     } catch (err) {
-      console.warn(`[guild-lock] ready enforce: ${err?.message || err}`);
+      log.warn(`[guild-lock] ready enforce: ${err?.message || err}`);
     }
 
     every(
@@ -192,7 +195,7 @@ module.exports.run = async (client) => {
       },
     );
     const seatioesd = statusDB.get(client.user.id);
-    console.log(
+    log.info(
       `[presence] saved status for ${client.user.id}:`,
       JSON.stringify(seatioesd || null),
     );
@@ -249,7 +252,7 @@ module.exports.run = async (client) => {
             );
           }
         } catch (err) {
-          console.log("Streaming keep-alive error:", err?.message || err);
+          log.error("Streaming keep-alive error:", err?.message || err);
         }
       });
 
@@ -269,16 +272,16 @@ module.exports.run = async (client) => {
                   .then(() =>
                     setTimeout(() => {
                       Promise.resolve(client.destroy()).then(() => {
-                        console.log("Bot has been destroyed");
+                        log.info("Bot has been destroyed");
                       });
                     }, 10000),
                   )
-                  .catch((err) => console.log("Expire Errors: " + err));
+                  .catch((err) => log.error("Expire Errors: " + err));
               }, 10000);
             })
-            .catch((err) => console.log("Expire Errors: " + err));
+            .catch((err) => log.error("Expire Errors: " + err));
         } catch (err) {
-          console.log("Expire Errors: " + err);
+          log.error("Expire Errors: " + err);
         }
       });
 
@@ -424,10 +427,10 @@ module.exports.run = async (client) => {
                 await member.roles
                   .remove(Role)
                   .then(() => {
-                    console.log(`Removed role ${Role} from user ${User}.`);
+                    log.info(`Removed role ${Role} from user ${User}.`);
                   })
                   .catch((err) => {
-                    console.error(`Failed to remove role from user: ${err}`);
+                    log.error(`Failed to remove role from user: ${err}`);
                   });
               }
 
@@ -440,7 +443,7 @@ module.exports.run = async (client) => {
           }
         }
       } catch (error) {
-        console.error(`Error processing temporary roles: ${error}`);
+        log.error(`Error processing temporary roles: ${error}`);
       }
     });
 
@@ -557,7 +560,7 @@ module.exports.run = async (client) => {
               });
             })
             .catch(async (error) => {
-              console.log(error);
+              log.error(error);
               try {
               } catch {}
             });
@@ -585,7 +588,7 @@ module.exports.run = async (client) => {
               });
             })
             .catch(async (error) => {
-              console.log(error);
+              log.error(error);
               try {
               } catch {}
             });
@@ -1085,7 +1088,7 @@ module.exports.run = async (client) => {
             }
           }
         } catch (err) {
-          console.error("[azkar] tick failed:", err?.message || err);
+          log.error("[azkar] tick failed:", err?.message || err);
         }
         after("azkar-tick", delayMs, tick);
       };
@@ -1100,7 +1103,7 @@ module.exports.run = async (client) => {
       const quranPlayer = createQuranPlayer(client);
       every("quran-watchdog", 10000, () => {
         quranPlayer.watchdog().catch((err) => {
-          console.error(
+          log.error(
             "[quran] watchdog rejected:",
             err?.message || err,
             err?.stack || "",
@@ -1108,7 +1111,7 @@ module.exports.run = async (client) => {
         });
       });
     } catch (err) {
-      console.error("[quran] player init failed", err?.message || err);
+      log.error("[quran] player init failed", err?.message || err);
     }
 
     // Apply dashboard actions (accept/reject queued from Nest API)
@@ -1223,13 +1226,13 @@ module.exports.run = async (client) => {
               }
             }
           } catch (err) {
-            console.log("Dashboard apply action error:", err?.message || err);
+            log.error("Dashboard apply action error:", err?.message || err);
             next.push(item);
           }
         }
         await applydb.set(key, next);
       } catch (err) {
-        console.log("Dashboard apply queue error:", err?.message || err);
+        log.error("Dashboard apply queue error:", err?.message || err);
       }
     });
 
@@ -1291,13 +1294,13 @@ module.exports.run = async (client) => {
               next.push(item);
             });
           } catch (err) {
-            console.log("Dashboard log send error:", err?.message || err);
+            log.error("Dashboard log send error:", err?.message || err);
             next.push(item);
           }
         }
         await applydb.set(key, next);
       } catch (err) {
-        console.log("Dashboard logs queue error:", err?.message || err);
+        log.error("Dashboard logs queue error:", err?.message || err);
       }
     });
 
@@ -1326,7 +1329,7 @@ module.exports.run = async (client) => {
 
             const activity = buildActivity(name, type, url);
             if (!activity) {
-              console.log(
+              log.info(
                 `Dashboard profile presence skipped: invalid ${type} activity (need Twitch/YouTube URL for Streaming)`,
               );
               continue;
@@ -1351,7 +1354,7 @@ module.exports.run = async (client) => {
               Status: presenceStatus,
             });
           } catch (err) {
-            console.log(
+            log.error(
               "Dashboard profile presence error:",
               err?.message || err,
             );
@@ -1360,10 +1363,10 @@ module.exports.run = async (client) => {
         }
         await applydb.set(key, next);
       } catch (err) {
-        console.log("Dashboard profile queue error:", err?.message || err);
+        log.error("Dashboard profile queue error:", err?.message || err);
       }
     });
   } catch (error) {
-    console.log(error);
+    log.error(error);
   }
 };

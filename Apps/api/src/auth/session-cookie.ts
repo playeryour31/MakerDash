@@ -20,12 +20,32 @@ function isSecure(): boolean {
   );
 }
 
+/**
+ * Cookies are host-scoped (ports are ignored).
+ *
+ * The dashboard works out of the box when the API and the UI share a host
+ * because this project proxies `/api` through Next. If the API is moved to a
+ * separate hostname later (api.example.com), set SESSION_COOKIE_DOMAIN to a
+ * parent domain shared by both (e.g. `.example.com`); otherwise the browser
+ * sets the session on one host and never sends it to the other.
+ */
+function cookieDomain(): string | undefined {
+  const raw = (
+    process.env.SESSION_COOKIE_DOMAIN ||
+    process.env.COOKIE_DOMAIN ||
+    ''
+  ).trim();
+  return raw || undefined;
+}
+
 function cookieOptions() {
+  const domain = cookieDomain();
   return {
     httpOnly: true,
     sameSite: 'lax' as const,
     secure: isSecure(),
     path: '/',
+    ...(domain ? { domain } : {}),
   };
 }
 

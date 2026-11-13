@@ -6,9 +6,11 @@ import { getDiscordAuthorizeUrl } from '@/lib/discord-oauth';
 export default async function BotMagicLinkPage({
   params,
 }: {
-  params: { slug: string };
+  // Next 16: route params are async.
+  params: Promise<{ slug: string }>;
 }) {
-  const state = String(params.slug);
+  const { slug } = await params;
+  const state = String(slug);
   const { url, error } = await getDiscordAuthorizeUrl(state);
   if (url) redirect(url);
 

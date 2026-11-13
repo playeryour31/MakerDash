@@ -20,7 +20,7 @@ Database/       Legacy JSON archive — git-ignored, exists on old servers only
 
 ## Run
 
-Requires Node **20.17+** (see `.nvmrc`), PostgreSQL and (optionally) Redis.
+Requires **Node 22** (`.nvmrc`, also used by CI), PostgreSQL and (optionally) Redis.
 
 ```bash
 npm install
@@ -41,4 +41,5 @@ npm run start:bot
 secret scan, structural metrics).
 
 Env for API + bot flags: `Apps/api/.env`  
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/BOTS.md](docs/BOTS.md).
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/BOTS.md](docs/BOTS.md)
+and the security model in [docs/SECURITY.md](docs/SECURITY.md).

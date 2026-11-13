@@ -6,6 +6,9 @@
  *   1. Port drift — nginx upstream vs WEB_PORT vs INTERNAL_API_ORIGIN vs API PORT
  *   2. Token-encryption key drift — missing, too short, or different between
  *      Apps/api/.env and packages/database/.env
+ *   3. Session-cookie host drift — the dashboard and the OAuth callback must
+ *      share a host, or SESSION_COOKIE_DOMAIN must cover both (cookies ignore
+ *      ports but not hostnames)
  *
  * Read-only. Never prints secret values (only a short fingerprint).
  *
@@ -68,6 +71,15 @@ function portOf(url, label) {
   throw new Error(`Cannot parse ${label} as a URL: ${url}`);
 }
 
+function hostOf(url, label) {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    throw new Error(`Cannot parse ${label} as a URL: ${url}`);
+  }
+}
+
 function fingerprint(value) {
   return createHash('sha256').update(String(value)).digest('hex').slice(0, 8);
 }
@@ -116,6 +128,35 @@ function main() {
     nginxPort ? `127.0.0.1:${nginxPort}` : '(unset)',
     'deploy/nginx.maker.conf',
   ]);
+
+  // ── session cookie host ──────────────────────────────────────────────────
+  // The session lives in a host-scoped HttpOnly cookie. Ports are ignored, so
+  // the default same-host setup (Next proxies /api) works. A different API
+  // hostname only works when SESSION_COOKIE_DOMAIN covers both hosts.
+  const dashboardHost = hostOf(api.env.get('DASHBOARD_PUBLIC_URL'), 'DASHBOARD_PUBLIC_URL');
+  const redirectHost = hostOf(api.env.get('DISCORD_REDIRECT_URI'), 'DISCORD_REDIRECT_URI');
+  const cookieDomain = (api.env.get('SESSION_COOKIE_DOMAIN') || api.env.get('COOKIE_DOMAIN') || '')
+    .trim()
+    .replace(/^\./, '');
+
+  let cookieHostState = '(unset)';
+  if (dashboardHost && redirectHost) {
+    if (dashboardHost === redirectHost) {
+      cookieHostState = `same host (${dashboardHost})`;
+    } else {
+      const covered = (host) =>
+        Boolean(cookieDomain) && (host === cookieDomain || host.endsWith(`.${cookieDomain}`));
+      if (covered(dashboardHost) && covered(redirectHost)) {
+        cookieHostState = `shared via .${cookieDomain}`;
+      } else {
+        cookieHostState = `MISMATCH ${dashboardHost} ≠ ${redirectHost}`;
+        errors.push(
+          `SESSION cookie would break: DASHBOARD_PUBLIC_URL host (${dashboardHost}) differs from DISCORD_REDIRECT_URI host (${redirectHost}) and SESSION_COOKIE_DOMAIN does not cover both. Keep them on the same host or set SESSION_COOKIE_DOMAIN=.example.com.`,
+        );
+      }
+    }
+  }
+  rows.push(['Session cookie host', cookieHostState, 'Apps/api/.env']);
 
   if (nginxPort !== null && nginxPort !== webPort) {
     errors.push(`nginx upstream ${nginxPort} ≠ WEB_PORT ${webPort}.`);

@@ -143,15 +143,24 @@ is on. `npm run metrics` prints the coupling that these flags exist to remove.
 
 ## Security & operations
 
-- **Token encryption** — bot tokens are AES-256-GCM encrypted at rest, keyed by
-  `BOT_TOKEN_ENCRYPTION_KEY` (scrypt-derived, cached after first use). The key
-  must be **identical** in `Apps/api/.env` and `packages/database/.env`, at least
-  32 characters. There is no hard-coded fallback: outside production a missing
-  key falls back to `JWT_SECRET` with a warning, in production the API and bot
-  refuse to boot (`assertTokenEncryptionKey`).
+- **Token encryption** — `BotInstance` tokens are AES-256-GCM encrypted at rest,
+  keyed by `BOT_TOKEN_ENCRYPTION_KEY` (scrypt-derived, cached after first use).
+  The key must be **identical** in `Apps/api/.env` and
+  `packages/database/.env`, at least 32 characters. There is no hard-coded
+  fallback: outside production a missing key falls back to `JWT_SECRET` with a
+  warning, in production the API and bot refuse to boot
+  (`assertTokenEncryptionKey`). **`TokenPoolEntry.token` is not encrypted** — it
+  holds imported Discord tokens as text, so the database must be treated as a
+  secret store. See [SECURITY.md](SECURITY.md) for the full model.
+- **Session transport** — the dashboard JWT lives in the HttpOnly
+  `maker_session` cookie (SameSite=Lax, Secure in production, 7 days).
+  `Authorization: Bearer` remains supported for legacy clients. Cookies ignore
+  ports but not hostnames, so the dashboard and the OAuth callback must share a
+  host; otherwise set `SESSION_COOKIE_DOMAIN` to a parent domain.
 - **Deployment preflight** — `npm run preflight` compares the nginx upstream,
-  `WEB_PORT`, `INTERNAL_API_ORIGIN`, `PORT`, `INTERNAL_API_URL` and the two
-  encryption-key copies, printing a key fingerprint (never the value).
+  `WEB_PORT`, `INTERNAL_API_ORIGIN`, `PORT`, `INTERNAL_API_URL`, the two
+  encryption-key copies (printing a fingerprint, never the value) and the
+  session-cookie host pair.
 - **Secrets** — never in the repo. Everything is read from env first
   (`src/shared/config/index.js`): `MAIN_BOT_TOKEN`, `MAIN_LOG_BOT_TOKEN`,
   `OPENAI_API_KEY`, `MAKER_WEBHOOK_TOKEN`.
@@ -201,7 +210,7 @@ Produced by `npm run metrics`:
 | `createRequire()` in API | 0 | 0 |
 | `requireFromHere()` in API | 0 | 0 |
 | Direct `fs` use in API | 30 | 0 |
-| Legacy JSON on disk | 0 MB in git (server-side archives only) | 0 |
+| Legacy JSON in git | 9 files / ~0.03 MB (`Subscriptions/Database` only) | 0 — `Database/` and `Maker/Json-Database/` archives are untracked |
 | Largest file | `Maker/Events/ready.js` 1,370 lines | < 400 |
 
 Subscription policy has exactly one implementation: `@maker/subscriptions`.

@@ -1,3 +1,6 @@
+const { createLogger } = require('../src/shared/utils/logger');
+const log = createLogger('Maker');
+
 const { Database } = require("st.db");
 const tokendb = new Database("./Database/Others/Tokens.json");
 const rundb = new Database("./Database/BotMaker/RunBots.json");
@@ -11,7 +14,7 @@ const { startBotHealthSupervisor } = require("./lib/botHealthSupervisor");
 
 // Hydrate FeatureRecord cache ASAP (handlers fall back to JSON until ready)
 featureCache.hydrateAll().catch((err) => {
-  console.warn(`[Maker] featureCache hydrate failed: ${err.message}`);
+  log.warn(`[Maker] featureCache hydrate failed: ${err.message}`);
 });
 
 const prefixDB = new Database("/Database/Others/PrefixData.json");
@@ -83,21 +86,21 @@ function installProcessGuardsOnce() {
       const now = Date.now();
       if (now - installProcessGuardsOnce._abortLogAt > 60_000) {
         installProcessGuardsOnce._abortLogAt = now;
-        console.warn(
+        log.warn(
           '[Maker] Discord REST request timed out (aborted). Usually network/Discord lag — ignored.',
         );
       }
       return;
     }
-    console.error('Unhandled promise rejection:', error);
+    log.error('Unhandled promise rejection:', error);
   });
   process.on('uncaughtException', (err) => {
     if (isBenignDiscordAbort(err)) return;
-    console.error(err);
+    log.error(err);
   });
   process.on('uncaughtExceptionMonitor', (err) => {
     if (isBenignDiscordAbort(err)) return;
-    console.error(err);
+    log.error(err);
   });
   process.on('warning', () => {});
 }
@@ -283,7 +286,7 @@ async function readRunBotsFreshRaw() {
       const apiMap = await botDataClient.getRuntimeMap({ force: true });
       return mergeRuntimeMaps(jsonMap, apiMap || {});
     } catch (err) {
-      console.warn(`[Maker] runtime API fallback: ${err.message}`);
+      log.warn(`[Maker] runtime API fallback: ${err.message}`);
     }
   }
   try {
@@ -293,7 +296,7 @@ async function readRunBotsFreshRaw() {
     for (const r of rows) pgMap[r.clientId] = r.running;
     return mergeRuntimeMaps(jsonMap, pgMap);
   } catch (err) {
-    console.warn(`[Maker] runtime pg fallback: ${err.message}`);
+    log.warn(`[Maker] runtime pg fallback: ${err.message}`);
     return jsonMap;
   }
 }
@@ -318,7 +321,7 @@ async function readTokensFreshRaw() {
       });
       return mergeTokenLists(jsonBots, apiBots || []);
     } catch (err) {
-      console.warn(`[Maker] tokens API fallback: ${err.message}`);
+      log.warn(`[Maker] tokens API fallback: ${err.message}`);
     }
   }
 
@@ -353,7 +356,7 @@ async function readTokensFreshRaw() {
     });
     return mergeTokenLists(jsonBots, pgBots);
   } catch (err) {
-    console.warn(`[Maker] tokens pg fallback: ${err.message}`);
+    log.warn(`[Maker] tokens pg fallback: ${err.message}`);
     return jsonBots;
   }
 }
@@ -442,7 +445,7 @@ async function stopCustomerBot(botID, token) {
   try {
     await live.destroy();
   } catch (err) {
-    console.error(`⚠️ Error stopping ${botID}: ${err.message}`);
+    log.error(`⚠️ Error stopping ${botID}: ${err.message}`);
   }
   delete global.bots[botID];
   global.botNotReadySince.delete(botID);
@@ -450,7 +453,7 @@ async function stopCustomerBot(botID, token) {
     global.loggedInTokens.delete(resolved);
     global.loggingInTokens.delete(resolved);
   }
-  console.log(`🛑 ${botID} Offline`);
+  log.info(`🛑 ${botID} Offline`);
 }
 
 installProcessGuardsOnce();
@@ -518,7 +521,7 @@ const managerTick = async () => {
 
         const live = global.bots[botID];
         if (shouldReconnectZombie(botID, token, live)) {
-          console.warn(
+          log.warn(
             `[Maker] ${botID} runtime=on but Discord not ready for 20s — reconnecting`,
           );
           await stopCustomerBot(botID, token);
@@ -613,14 +616,14 @@ const managerTick = async () => {
           global.botNotReadySince.delete(botID);
 
           client.on("error", (error) => {
-            console.error(`[Maker] ${botID} client error:`, error?.message || error);
+            log.error(`[Maker] ${botID} client error:`, error?.message || error);
             if (!isBotConnected(client)) {
               void stopCustomerBot(botID, token);
             }
           });
 
           client.on("shardError", (error) => {
-            console.error(`[Maker] ${botID} shard error:`, error?.message || error);
+            log.error(`[Maker] ${botID} shard error:`, error?.message || error);
           });
 
           client.on("shardDisconnect", () => {
@@ -683,7 +686,7 @@ const managerTick = async () => {
           }
 
           if (!Array.isArray(botCommands) || botCommands.length === 0) {
-            console.log("⚠️ botCommands is empty or not an array.");
+            log.warn("botCommands is empty or not an array.");
           } else {
             for (let folder of fs
               .readdirSync(path.join(__dirname, "SlashCommands"))
@@ -720,7 +723,7 @@ const managerTick = async () => {
                     }
                   });
                 } else {
-                  console.log(botCommands.length + " not working check it");
+                  log.warn(botCommands.length + " commands missing handlers - check the loader");
                 }
               }
             }
@@ -739,7 +742,7 @@ const managerTick = async () => {
                     },
                   );
                 } catch (error) {
-                  console.error(error);
+                  log.error(error);
                 }
               })();
 
@@ -778,7 +781,7 @@ const managerTick = async () => {
                   attachLockdownPoll(client);
                 }
               } catch (err) {
-                console.warn(
+                log.warn(
                   `[Maker] protection automod attach failed: ${err?.message || err}`,
                 );
               }
@@ -812,7 +815,7 @@ const managerTick = async () => {
                 const { sendSystemWelcome } = require('./lib/systemWelcome');
                 await sendSystemWelcome(client, member);
               } catch (err) {
-                console.warn(
+                log.warn(
                   `[Maker] system welcome failed: ${err?.message || err}`,
                 );
               }
@@ -820,7 +823,7 @@ const managerTick = async () => {
                 const { applySystemAutoRoles } = require('./lib/systemAutoRoles');
                 await applySystemAutoRoles(client, member);
               } catch (err) {
-                console.warn(
+                log.warn(
                   `[Maker] system auto-roles failed: ${err?.message || err}`,
                 );
               }
@@ -829,7 +832,7 @@ const managerTick = async () => {
                 const { handleMemberAdd } = require('./lib/protectionAdvanced');
                 await handleMemberAdd(client, member);
               } catch (err) {
-                console.warn(
+                log.warn(
                   `[Maker] protection advanced join failed: ${err?.message || err}`,
                 );
               }
@@ -1164,7 +1167,7 @@ const managerTick = async () => {
                 client.slashcommands.set(slashName, wrapper);
               }
             } catch (wrapErr) {
-              console.warn(
+              log.warn(
                 `[Maker] ${botID} prefix→slash wrap: ${wrapErr?.message || wrapErr}`,
               );
             }
@@ -1175,7 +1178,7 @@ const managerTick = async () => {
             clearLoginBackoff(botID);
             global.botLoginNextOk?.delete(botID);
           } catch (err) {
-            console.error(`❌ ${botID} Login Error: ${err.message}`);
+            log.error(`❌ ${botID} Login Error: ${err.message}`);
             try {
               await client.destroy();
             } catch {
@@ -1186,7 +1189,7 @@ const managerTick = async () => {
             global.botNotReadySince.delete(botID);
 
             if (isFatalTokenError(err)) {
-              console.warn(`[Maker] ${botID} invalid token — setting runtime=off`);
+              log.warn(`[Maker] ${botID} invalid token — setting runtime=off`);
               try {
                 const { runtimes } = require('../src/shared/services/mainDb');
                 await runtimes.setRunning(botID, false);
@@ -1199,7 +1202,7 @@ const managerTick = async () => {
               const wait = loginBackoffMs(botID);
               if (!global.botLoginNextOk) global.botLoginNextOk = new Map();
               global.botLoginNextOk.set(botID, Date.now() + wait);
-              console.warn(
+              log.warn(
                 `[Maker] ${botID} network login failure — retry in ${Math.round(wait / 1000)}s`,
               );
             }
@@ -1212,7 +1215,7 @@ const managerTick = async () => {
       }
     }
   } catch (err) {
-    console.error("❌ Manager Error:", err);
+    log.error("❌ Manager Error:", err);
   }
 };
 
@@ -1222,7 +1225,7 @@ getScheduler().every(MANAGER_TICK_MS, managerTick, { name: "manager-tick", scope
 try {
   startBotHealthSupervisor({ forceCustomerReconnect });
 } catch (err) {
-  console.warn(`[Maker] bot health supervisor failed to start: ${err.message}`);
+  log.warn(`[Maker] bot health supervisor failed to start: ${err.message}`);
 }
 
 // BullMQ workers: Dashboard → Discord jobs (skipped if Redis down)
@@ -1231,9 +1234,9 @@ try {
   void startMakerQueueWorkers({
     getClient: (botClientId) => global.bots[String(botClientId)] || null,
   }).catch((err) => {
-    console.warn(`[Maker] queue workers failed to start: ${err.message}`);
+    log.warn(`[Maker] queue workers failed to start: ${err.message}`);
   });
 } catch (err) {
-  console.warn(`[Maker] queue workers failed to start: ${err.message}`);
+  log.warn(`[Maker] queue workers failed to start: ${err.message}`);
 }
 
