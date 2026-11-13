@@ -1,79 +1,66 @@
 /**
  * Subscription lifecycle: warn → grace (3 days) → purge.
  * Active Tokens list only contains runnable bots; grace snapshots live in Expired store + PG meta.
+ *
+ * PHASE 1: the *policy* now lives in @maker/subscriptions (pure, dependency-free,
+ * unit-tested). This file keeps only the side effects — Discord clients, JSON
+ * stores, Prisma writes — and translates the package's vocabulary back to the
+ * legacy one, because existing callers compare against 'purge':
+ *   Maker/lib/botHealthSupervisor.js:93  phase === 'purge'
+ *   Main/Events/ready.js:159             action.type === 'purge'
+ * The package calls that phase 'expired' (matching the API). One meaning, two
+ * spellings, translated in exactly one place: here.
  */
 const moment = require('moment-timezone');
 const { prisma } = require('@maker/database');
 const { syncBotsToApiBackground } = require('./tokensWriteBridge');
+const policy = require('@maker/subscriptions');
 
-const WARN_DAYS = 3;
-const GRACE_DAYS = 3;
+const { WARN_DAYS, GRACE_DAYS } = policy;
 
-function parseEndMoment(value) {
-  if (!value) return moment.invalid();
-  if (value instanceof Date) {
-    const m = moment(value);
-    return m.isValid() ? m : moment.invalid();
-  }
-  const m = moment(
-    value,
-    [
-      'YYYY-M-D HH:mm:ss',
-      'YYYY-MM-DD HH:mm:ss',
-      'YYYY-M-D H:mm:ss',
-      'YYYY-MM-DD H:mm:ss',
-      moment.ISO_8601,
-    ],
-    true,
-  );
-  if (m.isValid()) return m;
-  const loose = moment(new Date(String(value).replace(' ', 'T')));
-  return loose.isValid() ? loose : moment.invalid();
+/** Package phase → legacy phase (`expired` is called `purge` in the Discord tree). */
+function toLegacyPhase(phase) {
+  if (phase === null || phase === undefined) return phase;
+  return phase === 'expired' ? 'purge' : phase;
 }
 
-function formatBotDate(d) {
-  const dt = d instanceof Date ? d : d?.toDate?.() || new Date(d);
-  if (Number.isNaN(dt.getTime())) return null;
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+/** Moment | Date | string → Date, or null. Legacy callers pass all three. */
+function toDate(value) {
+  if (value === null || value === undefined) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (typeof value.toDate === 'function') {
+    const d = value.toDate();
+    return d instanceof Date && !Number.isNaN(d.getTime()) ? d : null;
+  }
+  return policy.parseSubscriptionDate(value);
+}
+
+/** Kept for callers that still want a moment back. */
+function parseEndMoment(value) {
+  const d = toDate(value);
+  return d ? moment(d) : moment.invalid();
+}
+
+function formatBotDate(value) {
+  return policy.formatBotDate(toDate(value));
 }
 
 /**
  * @returns {'active'|'warn'|'grace'|'purge'|null}
  */
 function phaseForEndTime(endTime, now = moment()) {
-  const end = parseEndMoment(endTime);
-  if (!end.isValid()) return null;
-  const warnAt = end.clone().subtract(WARN_DAYS, 'days');
-  const graceUntil = end.clone().add(GRACE_DAYS, 'days');
-  if (now.isBefore(warnAt)) return 'active';
-  if (now.isBefore(end)) return 'warn';
-  if (now.isBefore(graceUntil)) return 'grace';
-  return 'purge';
+  const nowDate = now instanceof Date ? now : toDate(now) || new Date();
+  return toLegacyPhase(policy.phaseForEndTime(endTime, nowDate));
 }
 
 function graceUntilFromEnd(endTime) {
-  const end = parseEndMoment(endTime);
-  if (!end.isValid()) return null;
-  return end.clone().add(GRACE_DAYS, 'days');
+  const end = toDate(endTime);
+  if (!end) return null;
+  return moment(policy.graceUntilFor(end));
 }
 
-function isBotBlockedFromLogin(botOrMeta) {
-  if (!botOrMeta) return false;
-  if (botOrMeta.status === 'grace' || botOrMeta.grace === true) return true;
-  const graceUntil =
-    botOrMeta.graceUntil ||
-    botOrMeta.meta?.graceUntil ||
-    null;
-  if (graceUntil) {
-    const g = parseEndMoment(graceUntil);
-    if (g.isValid() && moment().isBefore(g)) return true;
-    // past graceUntil → still blocked until purge removes it
-    if (g.isValid() && !moment().isBefore(g)) return true;
-  }
-  const end = parseEndMoment(botOrMeta.endTime || botOrMeta.endsAt);
-  if (end.isValid() && moment().isSameOrAfter(end)) return true;
-  return false;
+function isBotBlockedFromLogin(botOrMeta, now = new Date()) {
+  return policy.isBotBlockedFromLogin(botOrMeta, now);
 }
 
 async function readActiveBots(db2) {
@@ -99,11 +86,12 @@ function getGraceSnapshot(db222, clientId) {
 
 async function saveGraceSnapshot(db222, bot) {
   const id = String(bot.ClientID);
-  const graceUntil = graceUntilFromEnd(bot.endTime);
+  const end = policy.parseSubscriptionDate(bot.endTime);
+  const graceUntil = end ? policy.graceUntilFor(end) : null;
   const snapshot = {
     ...bot,
     status: 'grace',
-    graceUntil: graceUntil ? formatBotDate(graceUntil.toDate()) : null,
+    graceUntil: graceUntil ? formatBotDate(graceUntil) : null,
     enteredGraceAt: formatBotDate(new Date()),
   };
   await db222.set(`Grace_${id}`, snapshot);
@@ -181,13 +169,7 @@ async function stopLiveClient(clientId) {
  * keep PG + Grace snapshot for renew window; return our token to unused pool.
  */
 async function enterGrace(bot, deps) {
-  const {
-    db2,
-    db222,
-    rundb,
-    tokenPoolDb,
-    expiredTokensDb,
-  } = deps;
+  const { db2, db222, rundb, tokenPoolDb, expiredTokensDb } = deps;
   const clientId = String(bot.ClientID);
   const graceUntil = graceUntilFromEnd(bot.endTime);
   if (!graceUntil) return { ok: false, reason: 'invalid_end' };
@@ -207,7 +189,7 @@ async function enterGrace(bot, deps) {
   await patchPgGraceMeta(clientId, {
     warnedBefore: true,
     grace: true,
-    graceUntil: formatBotDate(graceUntil.toDate()),
+    graceUntil: formatBotDate(graceUntil),
     status: 'grace',
   });
 
@@ -241,9 +223,7 @@ async function enterGrace(bot, deps) {
     }
   }
 
-  console.log(
-    `[lifecycle] ${clientId} entered grace until ${formatBotDate(graceUntil.toDate())}`,
-  );
+  console.log(`[lifecycle] ${clientId} entered grace until ${formatBotDate(graceUntil)}`);
   return { ok: true, graceUntil };
 }
 
@@ -302,16 +282,10 @@ async function purgeBot(bot, deps) {
     if (fs.existsSync(tokensFile)) {
       const raw = JSON.parse(fs.readFileSync(tokensFile, 'utf8') || '{}');
       const list = Array.isArray(raw.Bots) ? raw.Bots : [];
-      const next = list.filter(
-        (b) => String(b.ClientID || b.clientId) !== clientId,
-      );
+      const next = list.filter((b) => String(b.ClientID || b.clientId) !== clientId);
       if (next.length !== list.length) {
         const tmp = `${tokensFile}.${process.pid}.tmp`;
-        fs.writeFileSync(
-          tmp,
-          JSON.stringify({ ...raw, Bots: next }, null, 2),
-          'utf8',
-        );
+        fs.writeFileSync(tmp, JSON.stringify({ ...raw, Bots: next }, null, 2), 'utf8');
         fs.renameSync(tmp, tokensFile);
       }
     }
@@ -428,43 +402,38 @@ async function restoreFromGrace(clientId, patch = {}, deps) {
 /**
  * Process one customer bot subscription tick.
  * Mutates tokens list via deps; returns actions taken for notifications.
+ *
+ * The decision comes from @maker/subscriptions.planCustomerAction(); this
+ * function only performs it. `purge` keeps its legacy name in the returned
+ * action type because Main/Events/ready.js dispatches on it.
  */
-async function processCustomerBot(bot, deps) {
-  const now = moment();
-  const phase = phaseForEndTime(bot.endTime, now);
+async function processCustomerBot(bot, deps, now = new Date()) {
+  const decision = policy.planCustomerAction(bot, now);
   const actions = [];
 
-  if (phase === 'active') {
-    if (bot.warnedBefore) {
-      bot.warnedBefore = false;
-      actions.push({ type: 'clear_warn_flag' });
-      const active = await readActiveBots(deps.db2);
-      const next = active.map((b) =>
-        String(b.ClientID) === String(bot.ClientID)
-          ? { ...b, warnedBefore: false }
-          : b,
-      );
-      await writeActiveBots(deps.db2, next);
-    }
+  if (decision.type === 'clear_warn_flag') {
+    bot.warnedBefore = false;
+    actions.push({ type: 'clear_warn_flag' });
+    const active = await readActiveBots(deps.db2);
+    const next = active.map((b) =>
+      String(b.ClientID) === String(bot.ClientID) ? { ...b, warnedBefore: false } : b,
+    );
+    await writeActiveBots(deps.db2, next);
     return actions;
   }
 
-  if (phase === 'warn') {
-    if (!bot.warnedBefore) {
-      bot.warnedBefore = true;
-      actions.push({ type: 'warn' });
-      const active = await readActiveBots(deps.db2);
-      const next = active.map((b) =>
-        String(b.ClientID) === String(bot.ClientID)
-          ? { ...b, warnedBefore: true }
-          : b,
-      );
-      await writeActiveBots(deps.db2, next);
-    }
+  if (decision.type === 'warn') {
+    bot.warnedBefore = true;
+    actions.push({ type: 'warn' });
+    const active = await readActiveBots(deps.db2);
+    const next = active.map((b) =>
+      String(b.ClientID) === String(bot.ClientID) ? { ...b, warnedBefore: true } : b,
+    );
+    await writeActiveBots(deps.db2, next);
     return actions;
   }
 
-  if (phase === 'grace') {
+  if (decision.type === 'grace') {
     const result = await enterGrace(bot, deps);
     if (result.ok && !result.already) {
       actions.push({ type: 'grace', graceUntil: result.graceUntil });
@@ -472,14 +441,11 @@ async function processCustomerBot(bot, deps) {
     return actions;
   }
 
-  if (phase === 'purge') {
+  if (decision.type === 'purge') {
     // Skip if already permanently purged (no grace left)
     try {
       const id = String(bot.ClientID);
-      if (
-        deps.db222?.get?.(`Expired_${id}`) &&
-        !getGraceSnapshot(deps.db222, id)
-      ) {
+      if (deps.db222?.get?.(`Expired_${id}`) && !getGraceSnapshot(deps.db222, id)) {
         return actions;
       }
     } catch {
@@ -498,34 +464,34 @@ async function processCustomerBot(bot, deps) {
 /**
  * Tick grace-only snapshots that are no longer in active Tokens.
  */
-async function processGraceSnapshots(deps) {
+async function processGraceSnapshots(deps, now = new Date()) {
   const { db222 } = deps;
   const actions = [];
-  let arr = db222.get('GraceBots');
+  const arr = db222.get('GraceBots');
   if (!Array.isArray(arr)) return actions;
   for (const snap of [...arr]) {
-    const phase = phaseForEndTime(snap.endTime, moment());
-    if (phase === 'purge' || phase === null) {
-      const g = parseEndMoment(snap.graceUntil);
-      if (phase === 'purge' || (g.isValid() && moment().isSameOrAfter(g))) {
-        const id = String(snap.ClientID || '');
-        try {
-          // Only skip if permanently purged AND grace row already cleared
-          if (
-            id &&
-            deps.db222?.get?.(`Expired_${id}`) &&
-            !getGraceSnapshot(deps.db222, id)
-          ) {
-            continue;
-          }
-        } catch {
-          /* purge */
-        }
-        const result = await purgeBot(snap, deps);
-        if (result?.ok && !result.already) {
-          actions.push({ type: 'purge', clientId: snap.ClientID, bot: snap });
-        }
+    const phase = policy.phaseForEndTime(snap.endTime, now);
+    if (phase !== 'expired' && phase !== null) continue;
+
+    // A grace row is only purged once its own deadline passed, even when the
+    // end date says expired — a renewal may have pushed graceUntil forward.
+    const graceUntil = policy.parseSubscriptionDate(snap.graceUntil);
+    if (phase !== 'expired' && !(graceUntil && now.getTime() >= graceUntil.getTime())) {
+      continue;
+    }
+
+    const id = String(snap.ClientID || '');
+    try {
+      // Only skip if permanently purged AND grace row already cleared
+      if (id && deps.db222?.get?.(`Expired_${id}`) && !getGraceSnapshot(deps.db222, id)) {
+        continue;
       }
+    } catch {
+      /* purge */
+    }
+    const result = await purgeBot(snap, deps);
+    if (result?.ok && !result.already) {
+      actions.push({ type: 'purge', clientId: snap.ClientID, bot: snap });
     }
   }
   return actions;

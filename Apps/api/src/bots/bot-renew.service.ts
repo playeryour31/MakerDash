@@ -4,13 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { createRequire } from 'module';
 import { decryptBotToken } from '@maker/database';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApplyStoreService } from '../apply/apply-store.service';
 import { SubscriptionStatusService } from './subscription-status.service';
-
-const requireFromHere = createRequire(__filename);
+import { balance as balanceApi, lifecycle, mainDb } from './legacy-bridge';
 
 @Injectable()
 export class BotRenewService {
@@ -20,22 +18,8 @@ export class BotRenewService {
     private readonly subs: SubscriptionStatusService,
   ) {}
 
-  private lifecycle() {
-    return requireFromHere(
-      '../../../../src/shared/services/subscriptionLifecycle',
-    );
-  }
-
-  private mainDb() {
-    return requireFromHere('../../../../src/shared/services/mainDb');
-  }
-
-  private balance() {
-    return requireFromHere('../../../../src/shared/services/balanceService');
-  }
-
   private deps() {
-    const { Database } = this.mainDb();
+    const { Database } = mainDb;
     return {
       db2: new Database('/Database/Others/Tokens.json'),
       db222: new Database('/Database/Others/Expired.json'),
@@ -69,7 +53,6 @@ export class BotRenewService {
     await deps.db2.set('Bots', without);
 
     try {
-      const lifecycle = this.lifecycle();
       // clearGraceSnapshot via restore path extras
       await deps.db222.delete?.(`Grace_${id}`);
       let arr = deps.db222.get('GraceBots');
@@ -79,7 +62,6 @@ export class BotRenewService {
       }
       // Expired_ is set during grace in saveGraceSnapshot — clear so renew works
       await deps.db222.delete?.(`Expired_${id}`);
-      void lifecycle;
     } catch {
       /* optional */
     }
@@ -103,7 +85,7 @@ export class BotRenewService {
 
     if (deps.rundb) await deps.rundb.set(id, true);
     try {
-      const { runtimes, bots: botsApi } = this.mainDb();
+      const { runtimes, bots: botsApi } = mainDb;
       await runtimes.setRunning(id, true);
       await botsApi.setAllBots(without);
     } catch {
@@ -114,7 +96,6 @@ export class BotRenewService {
   }
 
   async renew(botId: string, discordUserId: string) {
-    const lifecycle = this.lifecycle();
     const deps = this.deps();
     const found = await lifecycle.findBotForRenew(
       botId,
@@ -215,7 +196,7 @@ export class BotRenewService {
       guildId,
     );
 
-    const { getUserBalance, addBalance } = this.balance();
+    const { getUserBalance, addBalance } = balanceApi;
     const balance = await getUserBalance(discordUserId, guildId);
     if (balance < price) {
       throw new BadRequestException(
@@ -274,7 +255,7 @@ export class BotRenewService {
       }
       if (deps.rundb) await deps.rundb.set(botId, true);
       try {
-        const { runtimes, bots: botsApi } = this.mainDb();
+        const { runtimes, bots: botsApi } = mainDb;
         await runtimes.setRunning(botId, true);
         await botsApi.setAllBots(list);
       } catch {

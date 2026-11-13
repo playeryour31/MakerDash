@@ -2,7 +2,7 @@
   "areas": {
     "Main": {
       "files": 72,
-      "lines": 7891
+      "lines": 7758
     },
     "Maker": {
       "files": 312,
@@ -10,36 +10,36 @@
     },
     "src": {
       "files": 43,
-      "lines": 4994
+      "lines": 4959
     },
     "Apps/api": {
-      "files": 78,
-      "lines": 14948
+      "files": 79,
+      "lines": 14935
     },
     "Apps/web": {
       "files": 168,
       "lines": 28385
     },
     "packages": {
-      "files": 21,
-      "lines": 1984
+      "files": 24,
+      "lines": 2726
     },
     "scripts": {
       "files": 12,
-      "lines": 1633
+      "lines": 1627
     }
   },
   "coupling": {
-    "dbConstructorCalls": 302,
+    "dbConstructorCalls": 300,
     "dbConstructorDistinct": 54,
-    "setIntervalCalls": 34,
-    "consoleCalls": 644,
-    "requireFromHere": 5,
-    "createRequire": 2,
+    "setIntervalCalls": 33,
+    "consoleCalls": 641,
+    "requireFromHere": 0,
+    "createRequire": 0,
     "directFsInApi": 30
   },
   "timers": {
-    "total": 34
+    "total": 33
   },
   "jsonStores": [
     {

@@ -67,6 +67,7 @@ jobs:
           npx tsc -p Apps/api/tsconfig.json --noEmit
           npx tsc -p packages/database/tsconfig.json --noEmit
           npx tsc -p packages/queue/tsconfig.json --noEmit
+          npx tsc -p packages/subscriptions/tsconfig.json --noEmit
 
       - name: Secret scan
         run: npm run scan:secrets:all

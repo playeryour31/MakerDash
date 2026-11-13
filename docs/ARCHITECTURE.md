@@ -37,7 +37,7 @@ Apps/
 packages/
   database/     Prisma schema, client, token crypto   @maker/database
   queue/        BullMQ producer/worker + Redis        @maker/queue
-  subscriptions/(phase 1) pure subscription rules     @maker/subscriptions
+  subscriptions/ pure subscription policy (no deps)  @maker/subscriptions
 Main/           Control Discord bot handlers (legacy JS)
 Maker/          Customer multi-bot runtime (legacy JS)
 src/shared/     Bridges between legacy JS and Postgres/Redis
@@ -67,7 +67,7 @@ Each fact has exactly one owner. Everything else reads through a typed service.
 
 ### Two bridges, one job
 
-The legacy Discord code calls `new Database(path)` hundreds of times (296
+The legacy Discord code calls `new Database(path)` hundreds of times (300
 call sites, 54 distinct paths). Two `st.db`-compatible shims keep those calls
 working without touching 40k lines of bot code:
 
@@ -80,6 +80,11 @@ working without touching 40k lines of bot code:
 `catalog`, a `FeatureRecord` namespace, a typed table, or a `PlatformRecord`
 mirror. Both bridges share it, so a path resolves the same way regardless of
 caller.
+
+The API also needs a few legacy modules (subscription lifecycle side effects,
+`mainDb`, balances). Those all go through `Apps/api/src/bots/legacy-bridge.ts` —
+one typed file holding the only `require()` into the CommonJS tree. No other API
+file may require legacy code, so porting a module later is a one-line change.
 
 **Phase 2 merges these two bridges into `packages/data-bridge`.**
 
@@ -155,19 +160,22 @@ Produced by `npm run metrics`:
 
 | Metric | Value | Target |
 |--------|-------|--------|
-| `new Database()` call sites | 302 | 0 outside the bridge |
+| `new Database()` call sites | 300 | 0 outside the bridge |
 | Distinct legacy paths | 54 | routed via one table |
-| `setInterval` calls | 34 | ≤ 8 |
-| `console.*` calls | 644 | one structured logger |
-| `createRequire()` in API | 2 | 0 |
-| `requireFromHere()` in API | 5 | 0 |
+| `setInterval` calls | 33 | ≤ 8 |
+| `console.*` calls | 641 | one structured logger |
+| `createRequire()` in API | 0 | 0 |
+| `requireFromHere()` in API | 0 | 0 |
 | Direct `fs` use in API | 30 | 0 |
 | Legacy JSON on disk | 10.0 MB | 0 |
 | Largest file | `Maker/Events/ready.js` 1,362 lines | < 400 |
 
-Subscription policy is implemented three times (`subscriptionLifecycle.js`,
-`subscription-status.service.ts`, and a commented block in `Main/Events/ready.js`).
-Phase 1 collapses these into `@maker/subscriptions`.
+Subscription policy has exactly one implementation: `@maker/subscriptions`.
+`src/shared/services/subscriptionLifecycle.js` is now a thin side-effect wrapper
+around it (it keeps the `'purge'` vocabulary the bot health supervisor compares
+against), and `Apps/api/src/bots/subscription-status.service.ts` calls the package
+directly. `packages/subscriptions/test/legacy-parity.test.js` pins the package
+against the old implementations so the two can never drift silently.
 
 ## DB commands
 

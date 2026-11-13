@@ -9,7 +9,8 @@
     "Apps/api",
     "Apps/bot",
     "packages/database",
-    "packages/queue"
+    "packages/queue",
+    "packages/subscriptions"
   ],
   "scripts": {
     "dev": "turbo run dev",
@@ -18,7 +19,7 @@
     "start:api": "npm run start --workspace=@maker/api",
     "start:web": "npm run start --workspace=@maker/web",
     "build": "turbo run build",
-    "test": "npm run build --workspace=@maker/database --silent && node --test",
+    "test": "npm run build --workspace=@maker/database --silent && npm run build --workspace=@maker/subscriptions --silent && node --test",
     "bot": "node scripts/run-bot.js",
     "api:dev": "npm run start:dev --workspace=@maker/api",
     "web:dev": "npm run dev --workspace=@maker/web",
